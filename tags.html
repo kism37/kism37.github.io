@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tags — Kismet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div id="k-cur"></div><div id="kprog"></div><div class="grain"></div>
+  <div class="search-overlay" id="k-search"><div class="search-box"><input class="search-input" id="k-sinput" type="text" placeholder="Search..." autocomplete="off" /><div class="search-hint">esc to close</div><div class="search-results" id="k-sresults"></div></div></div>
+
+  <nav><div class="nav-inner">
+    <a class="nav-logo" href="/"><span class="nav-logo-dot"></span>Kismet</a>
+    <ul class="nav-links">
+      <li><a href="/">home</a></li>
+      <li><a href="posts/hacking/">hacking</a></li>
+      <li><a href="posts/ctf/">ctf</a></li>
+      <li><a href="posts/research/">research</a></li>
+      <li><a href="posts/misc/">misc</a></li>
+      <li><a href="tags.html" class="active">tags</a></li>
+      <li><a href="whoami.html">whoami</a></li>
+      <li><button class="nav-search" data-search>⌕</button></li>
+    </ul>
+  </div></nav>
+
+  <div class="wrap page-body">
+    <div class="ptitle rev">
+      <div class="label">index</div>
+      <h1>Tags</h1>
+      <p>Browse by topic. Updated as posts are published.</p>
+    </div>
+
+    <div class="rev">
+      <div class="tag-group">
+        <div class="tag-group-lbl">Offensive Security</div>
+        <div class="tag-cloud">
+          <a href="#" class="tag-pill">IDOR <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">XSS <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">SQL Injection <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">SSRF <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Auth Bypass <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">RCE <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Broken Access Control <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">JWT <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">API Security <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Privilege Escalation <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">File Upload <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">CSRF <span class="tc">0</span></a>
+        </div>
+      </div>
+      <div class="tag-group">
+        <div class="tag-group-lbl">CTF & Platforms</div>
+        <div class="tag-cloud">
+          <a href="#" class="tag-pill">HackTheBox <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">TryHackMe <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">PortSwigger <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Binary Exploitation <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Forensics <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Crypto <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Steganography <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Reverse Engineering <span class="tc">0</span></a>
+        </div>
+      </div>
+      <div class="tag-group">
+        <div class="tag-group-lbl">Tools & Techniques</div>
+        <div class="tag-cloud">
+          <a href="#" class="tag-pill">Burp Suite <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Nmap <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Metasploit <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">OSINT <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Recon <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Fuzzing <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Python <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Linux <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Active Directory <span class="tc">0</span></a>
+        </div>
+      </div>
+      <div class="tag-group">
+        <div class="tag-group-lbl">Research & Intelligence</div>
+        <div class="tag-cloud">
+          <a href="#" class="tag-pill">Threat Intelligence <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Fraud Detection <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Vulnerability Research <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">CVE <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Crypto Tracing <span class="tc">0</span></a>
+          <a href="#" class="tag-pill">Malware Analysis <span class="tc">0</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="foot-inner"><div class="foot-l">Kismet · <a href="https://twitter.com/kism3t_09" target="_blank" rel="noopener">Twitter</a> · <a href="https://github.com/kism37" target="_blank" rel="noopener">GitHub</a></div><div class="foot-r">kism37.github.io</div></div></footer>
+  <script src="assets/main.js"></script>
+</body>
+</html>

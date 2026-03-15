@@ -3,1010 +3,272 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kismet — Security Engineer</title>
+  <title>Kismet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
   <style>
-    :root {
-      --bg: #0b0c0e;
-      --bg2: #111316;
-      --bg3: #181a1f;
-      --border: #252830;
-      --amber: #e8a23a;
-      --amber-dim: #a06a1a;
-      --amber-glow: rgba(232, 162, 58, 0.12);
-      --red: #c0392b;
-      --green: #2ecc71;
-      --text: #c9cdd6;
-      --text-dim: #5c6270;
-      --text-bright: #e8ecf2;
-      --mono: 'DM Mono', monospace;
-      --display: 'Playfair Display', serif;
-      --code: 'Syne Mono', monospace;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 14px;
-      line-height: 1.7;
-      overflow-x: hidden;
-      cursor: none;
-    }
-
-    /* Custom cursor */
-    .cursor {
-      width: 10px;
-      height: 10px;
-      background: var(--amber);
-      border-radius: 50%;
-      position: fixed;
-      top: 0; left: 0;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 0.2s, height 0.2s, background 0.2s;
-      mix-blend-mode: screen;
-    }
-    .cursor-ring {
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--amber);
-      border-radius: 50%;
-      position: fixed;
-      top: 0; left: 0;
-      pointer-events: none;
-      z-index: 9998;
-      transform: translate(-50%, -50%);
-      transition: transform 0.12s ease-out, width 0.2s, height 0.2s;
-      opacity: 0.5;
-    }
-    body:hover .cursor { opacity: 1; }
-
-    /* Scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.03) 2px,
-        rgba(0,0,0,0.03) 4px
-      );
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    /* Noise texture */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 99;
-      opacity: 0.4;
-    }
-
-    /* ===== LAYOUT ===== */
-    .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
-
-    /* ===== NAV ===== */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 500;
-      padding: 1.2rem 0;
-      border-bottom: 1px solid var(--border);
-      background: rgba(11, 12, 14, 0.85);
-      backdrop-filter: blur(12px);
-    }
-    nav .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .nav-logo {
-      font-family: var(--code);
-      color: var(--amber);
-      font-size: 1rem;
-      text-decoration: none;
-      letter-spacing: 0.05em;
-    }
-    .nav-logo span { color: var(--text-dim); }
-    .nav-links { display: flex; gap: 2rem; list-style: none; }
-    .nav-links a {
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--amber); }
-
-    /* ===== HERO ===== */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      padding-top: 5rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.3;
-      mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
-    }
-    .hero-glow {
-      position: absolute;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--amber-glow) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-    .hero-content { position: relative; z-index: 2; }
-
-    .hero-tag {
-      font-family: var(--code);
-      font-size: 0.75rem;
-      color: var(--amber);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .hero-tag::before {
-      content: '';
-      width: 2rem;
-      height: 1px;
-      background: var(--amber);
-    }
-
-    h1 {
-      font-family: var(--display);
-      font-size: clamp(3rem, 8vw, 5.5rem);
-      color: var(--text-bright);
-      line-height: 1.05;
-      margin-bottom: 0.3rem;
-      font-weight: 700;
-    }
-    h1 em {
-      font-style: italic;
-      color: var(--amber);
-    }
-
-    .hero-sub {
-      font-family: var(--mono);
-      font-weight: 300;
-      font-size: 1rem;
-      color: var(--text-dim);
-      margin-top: 1.5rem;
-      margin-bottom: 2.5rem;
-      max-width: 500px;
-      line-height: 1.8;
-    }
-
-    .terminal-line {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: var(--code);
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      margin-bottom: 3rem;
-    }
-    .terminal-line .prompt { color: var(--amber); }
-    .terminal-line .cmd { color: var(--text); }
-    .terminal-line .output { color: var(--green); }
-    .cursor-blink {
-      display: inline-block;
-      width: 8px;
-      height: 14px;
-      background: var(--amber);
-      animation: blink 1s step-end infinite;
-      vertical-align: middle;
-    }
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .btn {
-      font-family: var(--code);
-      font-size: 0.8rem;
-      letter-spacing: 0.08em;
-      padding: 0.75rem 1.75rem;
-      text-decoration: none;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .btn-primary {
-      background: var(--amber);
-      color: var(--bg);
-      font-weight: 500;
-    }
-    .btn-primary:hover {
-      background: #f0b44c;
-      box-shadow: 0 0 24px rgba(232, 162, 58, 0.4);
-    }
-    .btn-ghost {
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    .btn-ghost:hover {
-      border-color: var(--amber);
-      color: var(--amber);
-    }
-
-    /* ===== SECTIONS ===== */
-    section { padding: 6rem 0; }
-    .section-label {
-      font-family: var(--code);
-      font-size: 0.7rem;
-      color: var(--amber);
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-    h2 {
-      font-family: var(--display);
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      color: var(--text-bright);
-      font-weight: 700;
-      margin-bottom: 3rem;
-    }
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-    }
-
-    /* ===== ABOUT ===== */
-    .about-grid {
+    /* HOME-ONLY */
+    .home-top {
+      padding: 7rem 0 4rem;
+      border-bottom: 1px solid var(--rule);
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: start;
+      grid-template-columns: 1fr auto;
+      gap: 3rem;
+      align-items: end;
     }
-    .about-text p {
-      color: var(--text);
-      line-height: 1.9;
-      margin-bottom: 1rem;
-      font-weight: 300;
+    .home-name {
+      font-family: var(--sans); font-weight: 800;
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      color: var(--white); letter-spacing: -.02em; line-height: .9;
     }
-    .about-text p:last-child { margin-bottom: 0; }
-    .about-text strong { color: var(--text-bright); font-weight: 500; }
-
-    .stat-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
-    .stat-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.9rem 1.2rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--amber);
+    .home-name .accent { color: var(--lime); }
+    .home-role {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(1rem, 2vw, 1.4rem);
+      color: var(--mid); margin-top: 1.2rem; line-height: 1.4;
     }
-    .stat-label { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.05em; }
-    .stat-value { font-size: 0.85rem; color: var(--text-bright); }
-
-    /* ===== SKILLS ===== */
-    .skills-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
+    .home-desc {
+      font-size: .82rem; font-weight: 300;
+      color: var(--dim); line-height: 1.9;
+      max-width: 440px; margin-top: 1.4rem;
     }
-    .skill-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      padding: 1.5rem;
-      transition: border-color 0.2s, transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .skill-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--amber);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s;
-    }
-    .skill-card:hover { border-color: var(--amber-dim); transform: translateY(-2px); }
-    .skill-card:hover::before { transform: scaleX(1); }
-    .skill-card-title {
-      font-family: var(--code);
-      font-size: 0.7rem;
-      color: var(--amber);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
-    .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .tag {
-      font-size: 0.72rem;
-      padding: 0.3rem 0.65rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      letter-spacing: 0.03em;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .tag:hover { border-color: var(--amber-dim); color: var(--amber); }
-
-    /* ===== PROJECTS ===== */
-    .projects-list { display: flex; flex-direction: column; gap: 1.5rem; }
-    .project-card {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: start;
-      gap: 1.5rem;
-      padding: 1.75rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      text-decoration: none;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
-    }
-    .project-card:hover {
-      border-color: var(--amber-dim);
-      background: var(--bg3);
-    }
-    .project-index {
-      font-family: var(--code);
-      font-size: 0.7rem;
-      color: var(--amber-dim);
-      padding-top: 0.2rem;
-      min-width: 2rem;
-    }
-    .project-title {
-      font-family: var(--display);
-      font-size: 1.2rem;
-      color: var(--text-bright);
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .project-desc {
-      font-size: 0.82rem;
-      color: var(--text-dim);
-      line-height: 1.7;
-      margin-bottom: 0.9rem;
-      font-weight: 300;
-    }
-    .project-stack { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .project-tag {
-      font-size: 0.68rem;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      letter-spacing: 0.05em;
-    }
-    .project-arrow {
-      font-size: 1.2rem;
-      color: var(--border);
-      transition: color 0.2s, transform 0.2s;
-      align-self: center;
-    }
-    .project-card:hover .project-arrow {
-      color: var(--amber);
-      transform: translateX(4px);
-    }
-    .project-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.68rem;
-      color: var(--green);
-      margin-bottom: 0.75rem;
-    }
-    .project-status::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46,204,113,0.4); }
-      50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(46,204,113,0); }
-    }
-
-    /* ===== WRITEUPS ===== */
-    .writeups-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
-    }
-    .writeup-card {
-      padding: 1.5rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      text-decoration: none;
-      display: block;
-      transition: border-color 0.2s;
-    }
-    .writeup-card:hover { border-color: var(--amber-dim); }
-    .writeup-type {
-      font-size: 0.68rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--amber);
-      margin-bottom: 0.6rem;
-    }
-    .writeup-title {
-      font-size: 0.92rem;
-      color: var(--text-bright);
-      margin-bottom: 0.4rem;
-      line-height: 1.4;
-    }
-    .writeup-meta {
-      font-size: 0.72rem;
-      color: var(--text-dim);
-    }
-    .writeup-placeholder {
-      border-style: dashed;
-      opacity: 0.5;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      min-height: 120px;
-      gap: 0.5rem;
-    }
-    .writeup-placeholder .plus {
-      font-size: 1.5rem;
-      color: var(--amber-dim);
-    }
-
-    /* ===== CERTIFICATIONS ===== */
-    .cert-row {
-      display: flex;
+    .home-links {
+      display: flex; gap: .6rem; margin-top: 2rem;
       flex-wrap: wrap;
-      gap: 1rem;
     }
-    .cert-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.9rem 1.4rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
+    .hlink {
+      font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+      padding: .5rem 1.1rem; text-decoration: none;
+      border: 1px solid var(--rule); color: var(--mid);
+      transition: border-color .15s, color .15s;
     }
-    .cert-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--amber-glow);
-      border: 1px solid var(--amber-dim);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      color: var(--amber);
-      font-family: var(--code);
-      flex-shrink: 0;
-    }
-    .cert-name {
-      font-size: 0.82rem;
-      color: var(--text-bright);
-    }
-    .cert-issuer {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-    }
-    .cert-badge.pending {
-      opacity: 0.5;
-      border-style: dashed;
-    }
-    .cert-badge.pending .cert-icon {
-      background: transparent;
-      border-color: var(--border);
-      color: var(--text-dim);
-    }
+    .hlink:hover, .hlink.primary { border-color: var(--lime); color: var(--lime); }
 
-    /* ===== CONTACT ===== */
-    .contact-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: start;
+    /* Status card top-right */
+    .status-card {
+      background: var(--ink2); border: 1px solid var(--rule);
+      padding: 1.4rem 1.6rem; min-width: 200px;
+      align-self: start; margin-top: 5rem;
     }
-    .contact-text p {
-      color: var(--text-dim);
-      line-height: 1.9;
-      font-weight: 300;
-      margin-bottom: 2rem;
+    .sc-row {
+      display: flex; flex-direction: column; gap: .5rem;
     }
-    .contact-links { display: flex; flex-direction: column; gap: 0.75rem; }
-    .contact-link {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 0.82rem;
-      padding: 0.8rem 1rem;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
+    .sc-item {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; font-size: .7rem; padding-bottom: .5rem;
+      border-bottom: 1px solid var(--rule);
     }
-    .contact-link:hover {
-      border-color: var(--amber-dim);
-      color: var(--text-bright);
-      padding-left: 1.3rem;
+    .sc-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .sc-k { color: var(--dim); }
+    .sc-v { color: var(--bright); text-align: right; }
+    .sc-v.live {
+      display: flex; align-items: center; gap: .35rem; color: var(--green);
     }
-    .contact-link-icon {
-      font-size: 0.7rem;
-      color: var(--amber);
-      font-family: var(--code);
-      min-width: 2.5rem;
+    .sc-v.live::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
     }
-    .contact-availability {
-      padding: 1.5rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--green);
-    }
-    .avail-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      color: var(--green);
-      margin-bottom: 0.75rem;
-    }
-    .avail-status::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-    .avail-detail {
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      line-height: 1.7;
-      font-weight: 300;
-    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(68,224,138,.4)} 50%{box-shadow:0 0 0 4px rgba(68,224,138,0)} }
 
-    /* ===== FOOTER ===== */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 0;
+    /* Recent feed */
+    .feed-top {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 2rem 0 0; gap: 1rem;
     }
-    footer .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .feed-heading {
+      font-family: var(--sans); font-weight: 700; font-size: .75rem;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
     }
-    .footer-left {
-      font-family: var(--code);
-      font-size: 0.75rem;
-      color: var(--text-dim);
+    .see-all {
+      font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--dim); text-decoration: none; transition: color .15s;
     }
-    .footer-left span { color: var(--amber); }
-    .footer-right {
-      font-size: 0.72rem;
-      color: var(--text-dim);
-    }
+    .see-all:hover { color: var(--lime); }
 
-    /* ===== ANIMATIONS ===== */
-    .fade-up {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
+    /* Writing index strip */
+    .cat-strip {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border-top: 1px solid var(--rule);
+      margin-top: 5rem;
     }
-    .fade-up.visible {
-      opacity: 1;
-      transform: translateY(0);
+    .cat-item {
+      padding: 1.8rem 0; border-right: 1px solid var(--rule);
+      text-decoration: none; display: flex; flex-direction: column; gap: .5rem;
+      position: relative; transition: background .2s;
     }
+    .cat-item:last-child { border-right: none; }
+    .cat-item:not(:first-child) { padding-left: 1.5rem; }
+    .cat-item:hover { background: var(--ink2); }
+    .ci-label {
+      font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+    }
+    .ci-name {
+      font-family: var(--sans); font-weight: 700; font-size: 1.05rem;
+      color: var(--bright); letter-spacing: -.01em;
+    }
+    .ci-count { font-size: .62rem; color: var(--dim); }
+    .ci-arr { font-size: .8rem; color: var(--dim); margin-top: auto; transition: color .15s, transform .15s; }
+    .cat-item:hover .ci-arr { color: var(--lime); transform: translateX(3px); }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 680px) {
-      .about-grid, .contact-inner { grid-template-columns: 1fr; gap: 2rem; }
-      .project-card { grid-template-columns: auto 1fr; }
-      .project-arrow { display: none; }
-      nav .nav-links { display: none; }
+    @media (max-width: 768px) {
+      .home-top { grid-template-columns: 1fr; }
+      .status-card { display: none; }
+      .cat-strip { grid-template-columns: repeat(2,1fr); }
+      .cat-item:nth-child(2) { border-right: none; }
+      .cat-item:nth-child(3) { border-top: 1px solid var(--rule); }
+      .cat-item:nth-child(4) { border-top: 1px solid var(--rule); border-right: none; }
     }
   </style>
 </head>
 <body>
+  <div id="k-cur"></div>
+  <div id="kprog"></div>
+  <div class="grain"></div>
 
-  <div class="cursor" id="cursor"></div>
-  <div class="cursor-ring" id="cursorRing"></div>
+  <!-- SEARCH -->
+  <div class="search-overlay" id="k-search">
+    <div class="search-box">
+      <input class="search-input" id="k-sinput" type="text" placeholder="Search..." autocomplete="off" />
+      <div class="search-hint">/ to open &nbsp;·&nbsp; esc to close</div>
+      <div class="search-results" id="k-sresults"></div>
+    </div>
+  </div>
 
-  <!-- NAV -->
   <nav>
-    <div class="container">
-      <a class="nav-logo" href="#"><span>~/</span>kismet</a>
+    <div class="nav-inner">
+      <a class="nav-logo" href="/">
+        <span class="nav-logo-dot"></span>
+        Kismet
+      </a>
       <ul class="nav-links">
-        <li><a href="#about">about</a></li>
-        <li><a href="#skills">skills</a></li>
-        <li><a href="#projects">projects</a></li>
-        <li><a href="#writeups">writeups</a></li>
-        <li><a href="#contact">contact</a></li>
+        <li><a href="/" class="active">home</a></li>
+        <li><a href="posts/hacking/">hacking</a></li>
+        <li><a href="posts/ctf/">ctf</a></li>
+        <li><a href="posts/research/">research</a></li>
+        <li><a href="posts/misc/">misc</a></li>
+        <li><a href="tags.html">tags</a></li>
+        <li><a href="whoami.html">whoami</a></li>
+        <li><button class="nav-search" data-search title="Search (/)">⌕</button></li>
       </ul>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-grid"></div>
-    <div class="hero-glow"></div>
-    <div class="container hero-content">
-      <div class="hero-tag">Security Engineer · Offensive Focus</div>
-      <h1>Kismet<br /><em>breaks things</em><br />on purpose.</h1>
-      <p class="hero-sub">
-        Security engineer building toward red team. I find what shouldn't be found, document what shouldn't be broken, and ship tools that matter.
-      </p>
-      <div class="terminal-line">
-        <span class="prompt">$</span>
-        <span class="cmd">whoami</span>
-        <span class="output">→ pentest+ · bug bounty · builder</span>
-        <span class="cursor-blink"></span>
-      </div>
-      <div class="hero-ctas">
-        <a href="#projects" class="btn btn-primary">↓ See my work</a>
-        <a href="#contact" class="btn btn-ghost">Get in touch</a>
-      </div>
-    </div>
-  </section>
+  <div class="wrap page-body">
 
-  <hr class="divider" />
-
-  <!-- ABOUT -->
-  <section id="about">
-    <div class="container">
-      <div class="section-label">01 / about</div>
-      <h2>Who I Am</h2>
-      <div class="about-grid fade-up">
-        <div class="about-text">
-          <p>
-            I'm a <strong>security engineer with an offensive security focus</strong>, currently working at Enovise while completing my NYSC year in Nigeria. I hold a <strong>CompTIA Pentest+</strong> certification and am actively working toward OSCP.
-          </p>
-          <p>
-            My work sits at the intersection of breaking things and building them — from vulnerability research and bug bounty hunting to developing tools that solve real-world security problems. I have a particular interest in financial systems, web app security, and automation.
-          </p>
-          <p>
-            When I'm not hunting bugs I build: an <strong>AI-powered NFL prediction system</strong> targeting data-driven sports analysis, and an <strong>intelligence scanner</strong> for detecting high-risk investment schemes. I like problems that require both technical depth and systems thinking.
-          </p>
-        </div>
-        <div>
-          <ul class="stat-list">
-            <li class="stat-item">
-              <span class="stat-label">Current Role</span>
-              <span class="stat-value">Security Engineer @ Enovise</span>
-            </li>
-            <li class="stat-item">
-              <span class="stat-label">Focus</span>
-              <span class="stat-value">Offensive Security · Red Team</span>
-            </li>
-            <li class="stat-item">
-              <span class="stat-label">Certification</span>
-              <span class="stat-value">CompTIA Pentest+</span>
-            </li>
-            <li class="stat-item">
-              <span class="stat-label">Pursuing</span>
-              <span class="stat-value">OSCP</span>
-            </li>
-            <li class="stat-item">
-              <span class="stat-label">Location</span>
-              <span class="stat-value">Nigeria → Lagos</span>
-            </li>
-            <li class="stat-item">
-              <span class="stat-label">Open To</span>
-              <span class="stat-value">Remote Roles · Bug Bounty</span>
-            </li>
-          </ul>
+    <!-- IDENTITY -->
+    <div class="home-top rev">
+      <div>
+        <div class="home-name">KIS<span class="accent">MET</span></div>
+        <div class="home-role">Security engineer. Offensive focus.<br/>I break things on purpose.</div>
+        <p class="home-desc">
+          Web app pentesting, vulnerability research, bug bounty, and the occasional idea that doesn't fit anywhere. Based in Nigeria. Open to remote roles across the security spectrum.
+        </p>
+        <div class="home-links">
+          <a href="posts/hacking/" class="hlink primary">Read writeups</a>
+          <a href="whoami.html" class="hlink">Whoami</a>
+          <a href="https://twitter.com/kism3t_09" class="hlink" target="_blank" rel="noopener">Twitter</a>
+          <a href="https://github.com/kism37" class="hlink" target="_blank" rel="noopener">GitHub</a>
         </div>
       </div>
-    </div>
-  </section>
-
-  <hr class="divider" />
-
-  <!-- SKILLS -->
-  <section id="skills">
-    <div class="container">
-      <div class="section-label">02 / skills</div>
-      <h2>Technical Arsenal</h2>
-      <div class="skills-grid fade-up">
-        <div class="skill-card">
-          <div class="skill-card-title">Offensive Security</div>
-          <div class="skill-tags">
-            <span class="tag">Web App Pentesting</span>
-            <span class="tag">OWASP Top 10</span>
-            <span class="tag">Bug Bounty</span>
-            <span class="tag">Recon & OSINT</span>
-            <span class="tag">Vulnerability Research</span>
-            <span class="tag">Responsible Disclosure</span>
+      <div class="status-card">
+        <div class="sc-row">
+          <div class="sc-item">
+            <span class="sc-k">Status</span>
+            <span class="sc-v live">Open to work</span>
           </div>
-        </div>
-        <div class="skill-card">
-          <div class="skill-card-title">Tools & Platforms</div>
-          <div class="skill-tags">
-            <span class="tag">Burp Suite</span>
-            <span class="tag">Nmap</span>
-            <span class="tag">Metasploit</span>
-            <span class="tag">Wireshark</span>
-            <span class="tag">HackerOne</span>
-            <span class="tag">Bugcrowd</span>
+          <div class="sc-item">
+            <span class="sc-k">Cert</span>
+            <span class="sc-v">PenTest+</span>
           </div>
-        </div>
-        <div class="skill-card">
-          <div class="skill-card-title">Development</div>
-          <div class="skill-tags">
-            <span class="tag">Python</span>
-            <span class="tag">JavaScript</span>
-            <span class="tag">Flask</span>
-            <span class="tag">React</span>
-            <span class="tag">PostgreSQL</span>
-            <span class="tag">Docker</span>
+          <div class="sc-item">
+            <span class="sc-k">Pursuing</span>
+            <span class="sc-v">OSCP</span>
           </div>
-        </div>
-        <div class="skill-card">
-          <div class="skill-card-title">ML & Data</div>
-          <div class="skill-tags">
-            <span class="tag">XGBoost</span>
-            <span class="tag">LightGBM</span>
-            <span class="tag">Scikit-learn</span>
-            <span class="tag">Ensemble Models</span>
-            <span class="tag">Feature Engineering</span>
+          <div class="sc-item">
+            <span class="sc-k">Focus</span>
+            <span class="sc-v">Offensive sec</span>
           </div>
-        </div>
-      </div>
-
-      <div style="margin-top: 2.5rem;">
-        <div class="section-label" style="margin-bottom: 1rem;">Certifications</div>
-        <div class="cert-row fade-up">
-          <div class="cert-badge">
-            <div class="cert-icon">P+</div>
-            <div>
-              <div class="cert-name">CompTIA PenTest+</div>
-              <div class="cert-issuer">CompTIA · Active</div>
-            </div>
-          </div>
-          <div class="cert-badge pending">
-            <div class="cert-icon">⬡</div>
-            <div>
-              <div class="cert-name">OSCP</div>
-              <div class="cert-issuer">Offensive Security · In Progress</div>
-            </div>
+          <div class="sc-item">
+            <span class="sc-k">Location</span>
+            <span class="sc-v">🇳🇬 Nigeria</span>
           </div>
         </div>
       </div>
     </div>
-  </section>
 
-  <hr class="divider" />
-
-  <!-- PROJECTS -->
-  <section id="projects">
-    <div class="container">
-      <div class="section-label">03 / projects</div>
-      <h2>Things I've Built</h2>
-      <div class="projects-list fade-up">
-
-        <div class="project-card">
-          <div class="project-index">01</div>
-          <div>
-            <div class="project-status">Active Development</div>
-            <div class="project-title">NFL AI Prediction System</div>
-            <div class="project-desc">
-              Full-stack sports intelligence platform targeting data-driven NFL analysis. Stacked ensemble model (XGBoost + LightGBM + Random Forest) served via a Flask/SocketIO backend with a React frontend. Features real-time predictions, historical game data seeding, and a Quick Booking Code feature for Nigerian betting platforms.
-            </div>
-            <div class="project-stack">
-              <span class="project-tag">Python</span>
-              <span class="project-tag">Flask</span>
-              <span class="project-tag">React</span>
-              <span class="project-tag">XGBoost</span>
-              <span class="project-tag">LightGBM</span>
-              <span class="project-tag">PostgreSQL</span>
-              <span class="project-tag">Docker</span>
-              <span class="project-tag">SocketIO</span>
-            </div>
-          </div>
-          <div class="project-arrow">→</div>
-        </div>
-
-        <div class="project-card">
-          <div class="project-index">02</div>
-          <div>
-            <div class="project-status">Active Development</div>
-            <div class="project-title">HYIP Intelligence Scanner</div>
-            <div class="project-desc">
-              Automated scanner for identifying and classifying high-yield investment program schemes and scam brokers. Features multi-source discovery, tiered risk signal scoring, and false-positive filtering. Built to help surface patterns common to Ponzi structures before they collapse on victims.
-            </div>
-            <div class="project-stack">
-              <span class="project-tag">Python</span>
-              <span class="project-tag">OSINT</span>
-              <span class="project-tag">Web Scraping</span>
-              <span class="project-tag">Signal Analysis</span>
-              <span class="project-tag">Fraud Detection</span>
-            </div>
-          </div>
-          <div class="project-arrow">→</div>
-        </div>
-
-        <div class="project-card" style="opacity: 0.55; cursor: default;">
-          <div class="project-index">03</div>
-          <div>
-            <div class="project-title">More coming soon</div>
-            <div class="project-desc">
-              CTF writeups, security tools, and research — being documented and published here.
-            </div>
-          </div>
-          <div class="project-arrow" style="color: var(--border);">→</div>
-        </div>
-
-      </div>
+    <!-- RECENT POSTS -->
+    <div class="feed-top rev">
+      <span class="feed-heading">Recent Posts</span>
+      <a href="posts/hacking/" class="see-all">All posts →</a>
     </div>
-  </section>
-
-  <hr class="divider" />
-
-  <!-- WRITEUPS -->
-  <section id="writeups">
-    <div class="container">
-      <div class="section-label">04 / writeups</div>
-      <h2>Research & Writeups</h2>
-      <div class="writeups-grid fade-up">
-        <div class="writeup-card writeup-placeholder">
-          <div class="plus">+</div>
-          <div class="writeup-type">Bug Bounty</div>
-          <div class="writeup-meta">First writeup coming soon</div>
-        </div>
-        <div class="writeup-card writeup-placeholder">
-          <div class="plus">+</div>
-          <div class="writeup-type">CTF</div>
-          <div class="writeup-meta">First writeup coming soon</div>
-        </div>
-        <div class="writeup-card writeup-placeholder">
-          <div class="plus">+</div>
-          <div class="writeup-type">Research</div>
-          <div class="writeup-meta">First writeup coming soon</div>
-        </div>
+    <div class="post-list rev">
+      <!-- Empty state — remove when first post goes live -->
+      <div class="empty">
+        <div class="empty-t">Nothing published yet</div>
+        <div class="empty-s">First writeup on the way.</div>
       </div>
-      <p style="margin-top: 1.5rem; font-size: 0.78rem; color: var(--text-dim); font-weight: 300;">
-        Writeups are published as blog posts in the <code style="color: var(--amber); font-size: 0.75rem;">/posts</code> directory of this repo.
-      </p>
-    </div>
-  </section>
 
-  <hr class="divider" />
-
-  <!-- CONTACT -->
-  <section id="contact">
-    <div class="container">
-      <div class="section-label">05 / contact</div>
-      <h2>Let's Talk</h2>
-      <div class="contact-inner fade-up">
-        <div class="contact-text">
-          <p>
-            Open to remote security engineering and pentesting roles, bug bounty collaborations, and interesting projects. If you're hiring for red team or offensive security positions, I'd like to hear from you.
-          </p>
-          <div class="contact-links">
-            <a href="https://twitter.com/kism3t_09" class="contact-link" target="_blank" rel="noopener">
-              <span class="contact-link-icon">[tw]</span>
-              @kism3t_09
-            </a>
-            <a href="https://github.com/kism37" class="contact-link" target="_blank" rel="noopener">
-              <span class="contact-link-icon">[gh]</span>
-              github.com/kism37
-            </a>
-            <a href="https://linkedin.com/in/kismet" class="contact-link" target="_blank" rel="noopener">
-              <span class="contact-link-icon">[li]</span>
-              LinkedIn
-            </a>
+      <!-- TEMPLATE: copy this block for each new post, remove empty state above
+      <a class="pitem" href="posts/hacking/your-post.html">
+        <div class="pitem-num">01</div>
+        <div class="pitem-body">
+          <div class="pitem-cat c-hacking">Hacking</div>
+          <div class="pitem-title">Your Post Title Here</div>
+          <div class="pitem-excerpt">One sentence that makes someone want to read it.</div>
+          <div class="pitem-meta">
+            <span class="pitem-date">Mar 2026</span>
+            <span class="pitem-read">8 min</span>
+            <span class="pitem-diff d-medium">Medium</span>
           </div>
         </div>
-        <div>
-          <div class="contact-availability">
-            <div class="avail-status">Available for opportunities</div>
-            <div class="avail-detail">
-              Currently based in Nigeria, completing NYSC. Relocating to Lagos soon. Available for fully remote roles globally, and open to hybrid roles in Lagos from mid-2025.
-            </div>
-          </div>
-        </div>
-      </div>
+      </a>
+      -->
     </div>
-  </section>
 
-  <!-- FOOTER -->
+    <!-- WRITING INDEX -->
+    <div class="cat-strip rev">
+      <a href="posts/hacking/" class="cat-item">
+        <span class="ci-label c-hacking">🥷 Hacking</span>
+        <span class="ci-name">Hacking</span>
+        <span class="ci-count">0 posts</span>
+        <span class="ci-arr">→</span>
+      </a>
+      <a href="posts/ctf/" class="cat-item">
+        <span class="ci-label c-ctf">⚑ CTF</span>
+        <span class="ci-name">CTF</span>
+        <span class="ci-count">0 posts</span>
+        <span class="ci-arr">→</span>
+      </a>
+      <a href="posts/research/" class="cat-item">
+        <span class="ci-label c-research">🔬 Research</span>
+        <span class="ci-name">Research</span>
+        <span class="ci-count">0 posts</span>
+        <span class="ci-arr">→</span>
+      </a>
+      <a href="posts/misc/" class="cat-item">
+        <span class="ci-label c-misc">✍ Misc</span>
+        <span class="ci-name">Misc</span>
+        <span class="ci-count">0 posts</span>
+        <span class="ci-arr">→</span>
+      </a>
+    </div>
+
+  </div>
+
   <footer>
-    <div class="container">
-      <div class="footer-left">
-        <span>~/kismet</span> · built with intention
+    <div class="foot-inner">
+      <div class="foot-l">
+        Kismet ·
+        <a href="https://twitter.com/kism3t_09" target="_blank" rel="noopener">Twitter</a> ·
+        <a href="https://github.com/kism37" target="_blank" rel="noopener">GitHub</a> ·
+        <a href="whoami.html">Whoami</a>
       </div>
-      <div class="footer-right">kism37.github.io</div>
+      <div class="foot-r">kism37.github.io</div>
     </div>
   </footer>
 
-  <script>
-    // Custom cursor
-    const cursor = document.getElementById('cursor');
-    const ring = document.getElementById('cursorRing');
-    let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-
-    document.addEventListener('mousemove', e => {
-      mouseX = e.clientX; mouseY = e.clientY;
-      cursor.style.left = mouseX + 'px';
-      cursor.style.top = mouseY + 'px';
-    });
-
-    function animateRing() {
-      ringX += (mouseX - ringX) * 0.12;
-      ringY += (mouseY - ringY) * 0.12;
-      ring.style.left = ringX + 'px';
-      ring.style.top = ringY + 'px';
-      requestAnimationFrame(animateRing);
-    }
-    animateRing();
-
-    document.querySelectorAll('a, button').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursor.style.width = '16px';
-        cursor.style.height = '16px';
-        ring.style.width = '44px';
-        ring.style.height = '44px';
-      });
-      el.addEventListener('mouseleave', () => {
-        cursor.style.width = '10px';
-        cursor.style.height = '10px';
-        ring.style.width = '30px';
-        ring.style.height = '30px';
-      });
-    });
-
-    // Scroll reveal
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('visible'), i * 80);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-    // Typewriter hero tag
-    const heroTag = document.querySelector('.hero-tag');
-    const originalText = heroTag.textContent;
-    heroTag.textContent = '';
-    let i = 0;
-    setTimeout(() => {
-      const type = () => {
-        if (i < originalText.length) {
-          heroTag.textContent += originalText[i++];
-          setTimeout(type, 40);
-        }
-      };
-      type();
-    }, 400);
-  </script>
+  <script src="assets/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whoami — Kismet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    .whoami-wrap {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 5rem;
+      padding-top: 3rem;
+    }
+    /* Sidebar */
+    .ws { position: sticky; top: 6rem; align-self: start; }
+    .ws-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--ink3); border: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--sans); font-weight: 800;
+      font-size: 1.4rem; color: var(--lime);
+      margin-bottom: 1.2rem; overflow: hidden;
+    }
+    .ws-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .ws-name { font-family: var(--sans); font-weight: 700; font-size: .95rem; color: var(--white); margin-bottom: .2rem; }
+    .ws-role { font-size: .7rem; color: var(--dim); line-height: 1.6; margin-bottom: 1.4rem; }
+    .ws-link { display: flex; align-items: center; gap: .5rem; font-size: .7rem; color: var(--dim); text-decoration: none; margin-bottom: .5rem; transition: color .15s; }
+    .ws-link:hover { color: var(--lime); }
+    .ws-link-pre { font-size: .58rem; color: var(--lime); opacity: .5; min-width: 1.2rem; }
+    .ws-toc { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+    .ws-toc-label { font-size: .58rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); opacity: .4; margin-bottom: .7rem; }
+    .ws-toc a { display: block; font-size: .7rem; color: var(--dim); text-decoration: none; padding: .25rem 0; transition: color .15s; border-left: 1px solid var(--rule); padding-left: .7rem; margin-bottom: .2rem; }
+    .ws-toc a:hover { color: var(--lime); border-left-color: var(--lime); }
+
+    /* Article */
+    .wa h2 {
+      font-family: var(--sans); font-weight: 700;
+      font-size: 1rem; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--bright); margin: 3rem 0 1rem;
+      padding-top: 3rem; border-top: 1px solid var(--rule);
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .wa h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .wa h2 .emoji { font-size: .9rem; }
+    .wa p {
+      font-size: .88rem; font-weight: 300;
+      color: var(--mid); line-height: 2;
+      margin-bottom: 1.2rem;
+    }
+    .wa p strong { color: var(--bright); font-weight: 500; }
+    .wa p em { color: var(--lime); font-style: normal; }
+    .wa a { color: var(--lime); text-underline-offset: 3px; }
+    .wa ul { margin: 0 0 1.2rem 0; list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+    .wa li { font-size: .86rem; font-weight: 300; color: var(--mid); padding-left: 1.2rem; position: relative; line-height: 1.75; }
+    .wa li::before { content: '—'; position: absolute; left: 0; color: var(--lime); font-size: .7rem; }
+
+    /* Cert list */
+    .cert-row { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
+    .cert-item {
+      display: flex; align-items: center; gap: .9rem;
+      padding: .75rem 1rem; background: var(--ink2);
+      border: 1px solid var(--rule); font-size: .78rem;
+    }
+    .ci-badge { font-size: .6rem; color: var(--lime); min-width: 2rem; letter-spacing: .06em; }
+    .ci-name { color: var(--bright); flex: 1; }
+    .ci-status { font-size: .65rem; color: var(--dim); }
+    .cert-item.wip { opacity: .4; border-style: dashed; }
+
+    /* Chips */
+    .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0 1.2rem; }
+    .chip { padding: .2rem .6rem; background: var(--ink2); border: 1px solid var(--rule); font-size: .68rem; color: var(--mid); }
+
+    /* Open to work */
+    .otw {
+      padding: 1.1rem 1.2rem; background: var(--ink2);
+      border: 1px solid var(--rule); border-left: 2px solid var(--lime);
+      margin: 1.5rem 0;
+    }
+    .otw-h { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--lime); margin-bottom: .4rem; display: flex; align-items: center; gap: .4rem; }
+    .otw-h::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--lime); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,241,53,.4)} 50%{box-shadow:0 0 0 4px rgba(200,241,53,0)} }
+    .otw-b { font-size: .8rem; font-weight: 300; color: var(--mid); line-height: 1.8; }
+
+    @media (max-width: 800px) { .whoami-wrap { grid-template-columns: 1fr; } .ws { position: static; } }
+  </style>
+</head>
+<body>
+  <div id="k-cur"></div>
+  <div id="kprog"></div>
+  <div class="grain"></div>
+
+  <div class="search-overlay" id="k-search">
+    <div class="search-box">
+      <input class="search-input" id="k-sinput" type="text" placeholder="Search..." autocomplete="off" />
+      <div class="search-hint">/ to open &nbsp;·&nbsp; esc to close</div>
+      <div class="search-results" id="k-sresults"></div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-logo" href="/"><span class="nav-logo-dot"></span>Kismet</a>
+      <ul class="nav-links">
+        <li><a href="/">home</a></li>
+        <li><a href="posts/hacking/">hacking</a></li>
+        <li><a href="posts/ctf/">ctf</a></li>
+        <li><a href="posts/research/">research</a></li>
+        <li><a href="posts/misc/">misc</a></li>
+        <li><a href="tags.html">tags</a></li>
+        <li><a href="whoami.html" class="active">whoami</a></li>
+        <li><button class="nav-search" data-search>⌕</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="wrap page-body">
+    <div class="ptitle rev">
+      <div class="label">whoami</div>
+      <h1>WHO AM I THOUGH _&lt;</h1>
+    </div>
+
+    <div class="whoami-wrap">
+      <aside class="ws rev">
+        <div class="ws-avatar">K</div>
+        <!-- Swap the K above for: <img src="assets/img/avatar.jpg" alt="Kismet" /> -->
+        <div class="ws-name">Kismet</div>
+        <div class="ws-role">Security Engineer<br/>Offensive Focus · 🇳🇬 Nigeria</div>
+        <a href="https://twitter.com/kism3t_09" class="ws-link" target="_blank" rel="noopener"><span class="ws-link-pre">[tw]</span> @kism3t_09</a>
+        <a href="https://github.com/kism37" class="ws-link" target="_blank" rel="noopener"><span class="ws-link-pre">[gh]</span> github.com/kism37</a>
+        <a href="https://linkedin.com/in/YOUR_HANDLE" class="ws-link" target="_blank" rel="noopener"><span class="ws-link-pre">[li]</span> LinkedIn</a>
+        <div class="ws-toc">
+          <div class="ws-toc-label">On this page</div>
+          <a href="#intro">Introduction</a>
+          <a href="#infosec">Infosec journey</a>
+          <a href="#certs">Certs & skills</a>
+          <a href="#outside">Outside security</a>
+          <a href="#plans">Future plans</a>
+        </div>
+      </aside>
+
+      <article class="wa rev">
+
+        <h2 id="intro"><span class="emoji">❓</span> Introduction</h2>
+        <p>
+          Hey — I'm Kismet. Security engineer with a deep offensive focus, working toward the OSCP while hunting bugs and building tools. I've held a <strong>CompTIA PenTest+</strong> and spend most of my time breaking web applications, writing about what I find, and thinking adversarially about systems that were never meant to be thought about that way.
+        </p>
+        <p>
+          Security for me is one connected discipline. The offensive mindset — the habit of looking for what's wrong before anyone else does — is useful everywhere: in detection engineering, in threat intelligence, in understanding why a SOC analyst misses something. I'm not locked into one lane.
+        </p>
+        <div class="otw">
+          <div class="otw-h">Open to work</div>
+          <div class="otw-b">Remote roles globally. Pentesting, red team, threat intel, SOC, security engineering — contract, freelance, or full-time. The domain matters less than the quality of the work.</div>
+        </div>
+
+        <h2 id="infosec"><span class="emoji">💻</span> Infosec — about 80% of my life</h2>
+        <p>
+          No mentor, no blueprint. I started with curiosity, a lot of late nights on TryHackMe, and a refusal to give up on things I didn't understand yet. That turned into a methodology. The methodology turned into results.
+        </p>
+        <p>
+          My work covers <strong>web application pentesting, vulnerability research, and bug bounty hunting</strong>. I've done responsible disclosure work, found things others missed, and built tools to automate the boring parts so I can spend more time on the interesting ones.
+        </p>
+        <p>
+          One of those tools is a <strong>HYIP intelligence scanner</strong> — an automated system for classifying Ponzi schemes and scam brokers by scoring risk signals across discovery sources. It turns out that security thinking and financial fraud share a lot of DNA. Recon, pattern recognition, signal-to-noise filtering — same muscle, different target.
+        </p>
+        <p>
+          Platforms: <em>HackerOne</em>, <em>Bugcrowd</em>. If a program is interesting and in scope, I'm there.
+        </p>
+
+        <h2 id="certs"><span class="emoji">🏅</span> Certifications & Skills</h2>
+        <div class="cert-row">
+          <div class="cert-item">
+            <span class="ci-badge">P+</span>
+            <span class="ci-name">CompTIA PenTest+</span>
+            <span class="ci-status">Active</span>
+          </div>
+          <div class="cert-item wip">
+            <span class="ci-badge">⬡</span>
+            <span class="ci-name">OSCP — Offensive Security Certified Professional</span>
+            <span class="ci-status">In progress</span>
+          </div>
+        </div>
+        <div class="chips">
+          <span class="chip">Burp Suite</span>
+          <span class="chip">Nmap</span>
+          <span class="chip">Metasploit</span>
+          <span class="chip">Gobuster</span>
+          <span class="chip">SQLMap</span>
+          <span class="chip">Wireshark</span>
+          <span class="chip">Python</span>
+          <span class="chip">Linux</span>
+          <span class="chip">Docker</span>
+          <span class="chip">Flask</span>
+          <span class="chip">PostgreSQL</span>
+          <span class="chip">OSINT</span>
+        </div>
+
+        <h2 id="outside"><span class="emoji">🌍</span> Outside security — the other 20%</h2>
+        <p>
+          I think about things that aren't on any cert syllabus. Philosophy of mind — the hard problem of consciousness, panpsychism, why subjective experience is so hard to explain in physical terms. Social psychology too: Cialdini, Kahneman, Aronson. Understanding how people think isn't separate from understanding how systems fail. It's the same muscle.
+        </p>
+        <p>
+          I'm the firstborn in my household, which means I know something about carrying weight and staying focused under pressure. That bleeds into how I approach hard problems — methodically, without panic, with a clear idea of what actually matters.
+        </p>
+        <p>
+          Based in <strong>Nigeria 🇳🇬</strong>, heading to Lagos. Work remotely. Think globally.
+        </p>
+
+        <h2 id="plans"><span class="emoji">✨</span> Future plans</h2>
+        <p>
+          Short term: finish OSCP. Then go deeper into red team — adversary simulation, full kill chains, not just entry points. I want to understand the complete picture from the attacker's perspective, because that's the only way the defender's perspective makes sense.
+        </p>
+        <p>
+          Longer term: I want to be the kind of security professional who can walk into any room — offensive, defensive, intelligence, research — and contribute. The people I respect most in this field don't just know one side of the fence.
+        </p>
+        <p>
+          The goal isn't to be the best in the room. It's to keep learning until the room keeps getting bigger.
+        </p>
+
+      </article>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-l">Kismet · <a href="https://twitter.com/kism3t_09" target="_blank" rel="noopener">Twitter</a> · <a href="https://github.com/kism37" target="_blank" rel="noopener">GitHub</a></div>
+      <div class="foot-r">kism37.github.io</div>
+    </div>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>
