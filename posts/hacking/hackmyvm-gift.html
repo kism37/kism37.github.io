@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HackMyVM — Gift · Kismet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/style.css" />
+  <style>
+    /* ── POST-SPECIFIC STYLES ── */
+    .post-hero {
+      padding: 5rem 0 3rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .post-label {
+      font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--lime); margin-bottom: .8rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .post-label::before { content: ''; width: 1.5rem; height: 1px; background: var(--lime); }
+    .post-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: var(--white); line-height: 1.1; margin-bottom: .8rem;
+    }
+    .post-sub {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-size: 1.1rem;
+      color: var(--mid); margin-bottom: 2rem;
+    }
+    .post-meta-row {
+      display: flex; align-items: center; gap: 1.2rem;
+      flex-wrap: wrap; padding-top: 1.5rem;
+      border-top: 1px solid var(--rule);
+    }
+    .pmeta { font-size: .68rem; color: var(--dim); display: flex; align-items: center; gap: .4rem; }
+    .pmeta-label { color: var(--lime); opacity: .6; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; }
+    .diff {
+      font-size: .6rem; padding: .15rem .5rem;
+      border: 1px solid; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .d-easy { border-color: rgba(68,224,138,.35); color: var(--green); }
+
+    /* Article */
+    article { padding: 3.5rem 0 5rem; max-width: 720px; }
+    article h2 {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: .9rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--bright); margin: 3rem 0 1rem;
+      padding-top: 3rem; border-top: 1px solid var(--rule);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    article h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    article p {
+      font-size: .88rem; font-weight: 300;
+      color: var(--mid); line-height: 2; margin-bottom: 1.2rem;
+    }
+    article p strong { color: var(--bright); font-weight: 500; }
+    article p em { color: var(--lime); font-style: normal; }
+    article ul { margin: 0 0 1.2rem 0; list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+    article li {
+      font-size: .86rem; font-weight: 300; color: var(--mid);
+      padding-left: 1.2rem; position: relative; line-height: 1.8;
+    }
+    article li::before { content: '—'; position: absolute; left: 0; color: var(--lime); font-size: .7rem; }
+
+    /* Code */
+    article pre {
+      background: var(--ink2); border: 1px solid var(--rule);
+      padding: 1.2rem 1.4rem; overflow-x: auto;
+      margin: 1.2rem 0 1.8rem; position: relative;
+    }
+    article pre::after {
+      content: attr(data-lang);
+      position: absolute; top: .5rem; right: .7rem;
+      font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--lime); opacity: .4;
+    }
+    article code { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--lime); line-height: 1.7; }
+    article p code { background: var(--ink2); padding: .1rem .35rem; font-size: .78rem; }
+
+    /* Callouts */
+    .note {
+      padding: 1rem 1.2rem; border: 1px solid; border-left: 2px solid;
+      margin: 1.5rem 0; display: flex; gap: .8rem; align-items: flex-start;
+      font-size: .82rem; font-weight: 300; line-height: 1.8;
+    }
+    .note.info  { border-color: rgba(200,241,53,.15); color: var(--mid); }
+    .note.info .ni { color: var(--lime); flex-shrink: 0; }
+    .note.flag  { border-color: rgba(68,224,138,.2); color: var(--mid); background: rgba(68,224,138,.03); }
+    .note.flag .ni { color: var(--green); flex-shrink: 0; }
+    .note.warn  { border-color: rgba(255,179,71,.2); color: var(--mid); }
+    .note.warn .ni { color: var(--amber); flex-shrink: 0; }
+
+    /* Timeline */
+    .steps { display: flex; flex-direction: column; margin: 1.5rem 0; }
+    .step { display: grid; grid-template-columns: 2rem 1fr; gap: 1rem; padding-bottom: 1.8rem; position: relative; }
+    .step:not(:last-child)::before { content: ''; position: absolute; left: .9rem; top: 1.8rem; bottom: 0; width: 1px; background: var(--rule); }
+    .step-n {
+      width: 1.8rem; height: 1.8rem; border-radius: 50%;
+      background: var(--ink2); border: 1px solid var(--lime);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; color: var(--lime); flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .step-b h4 { font-size: .82rem; color: var(--bright); margin-bottom: .3rem; font-weight: 500; }
+    .step-b p  { font-size: .8rem; font-weight: 300; color: var(--mid); line-height: 1.8; margin: 0; }
+
+    /* Post nav */
+    .post-nav {
+      display: flex; justify-content: space-between;
+      padding-top: 2.5rem; border-top: 1px solid var(--rule);
+      margin-top: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .pn-link { text-decoration: none; display: flex; flex-direction: column; gap: .2rem; max-width: 45%; }
+    .pn-dir { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--lime); opacity: .6; }
+    .pn-title { font-size: .8rem; color: var(--mid); transition: color .15s; }
+    .pn-link:hover .pn-title { color: var(--white); }
+    .pn-link.right { text-align: right; margin-left: auto; }
+
+    /* Progress */
+    #kprog { position: fixed; top: 0; left: 0; height: 1px; background: var(--lime); z-index: 999; width: 0%; }
+  </style>
+</head>
+<body>
+  <div id="k-cur"></div>
+  <div id="kprog"></div>
+  <div class="grain"></div>
+
+  <div class="search-overlay" id="k-search">
+    <div class="search-box">
+      <input class="search-input" id="k-sinput" type="text" placeholder="Search..." autocomplete="off" />
+      <div class="search-hint">esc to close</div>
+      <div class="search-results" id="k-sresults"></div>
+    </div>
+  </div>
+
+  <nav><div class="nav-inner">
+    <a class="nav-logo" href="/"><span class="nav-logo-dot"></span>Kismet</a>
+    <ul class="nav-links">
+      <li><a href="/">home</a></li>
+      <li><a href="../hacking/" class="active">hacking</a></li>
+      <li><a href="../ctf/">ctf</a></li>
+      <li><a href="../research/">research</a></li>
+      <li><a href="../misc/">misc</a></li>
+      <li><a href="../../tags.html">tags</a></li>
+      <li><a href="../../whoami.html">whoami</a></li>
+      <li><button class="nav-search" data-search>⌕</button></li>
+    </ul>
+  </div></nav>
+
+  <div class="wrap page-body">
+
+    <!-- POST HEADER -->
+    <div class="post-hero">
+      <div class="post-label">🥷 HackMyVM · Easy</div>
+      <h1 class="post-title">Gift</h1>
+      <p class="post-sub">When the web has nothing to give, go knock on SSH's door.</p>
+      <div class="post-meta-row">
+        <div class="pmeta"><span class="pmeta-label">Platform</span> HackMyVM</div>
+        <div class="pmeta"><span class="pmeta-label">Read</span> 4 min</div>
+        <div class="pmeta"><span class="pmeta-label">Difficulty</span> <span class="diff d-easy">Easy</span></div>
+        <div class="pmeta"><span class="pmeta-label">Tags</span> SSH · Brute Force · Recon</div>
+      </div>
+    </div>
+
+    <article>
+
+      <h2>Overview</h2>
+      <p>
+        Gift is an easy HackMyVM machine that teaches a clean lesson: when one door is locked, check the others. HTTP gave us nothing. SSH gave us everything. The vulnerability here isn't exotic — it's a <strong>weak root password</strong> on an exposed SSH port, brute-forceable with the right wordlist.
+      </p>
+      <div class="note info">
+        <span class="ni">ℹ</span>
+        <span>All testing was done in a local lab environment on HackMyVM. Target IP: <code>192.168.8.179</code>, added to <code>/etc/hosts</code> as <code>gift.hmv</code>.</span>
+      </div>
+
+      <h2>Reconnaissance</h2>
+      <p>
+        Started with an <code>fping</code> sweep to identify the target on the local network. With two known addresses already taken (AP and my machine), the remaining IP was the target.
+      </p>
+      <pre data-lang="bash"><code># Identify live hosts
+fping -a -g 192.168.8.0/24 2>/dev/null
+
+# Full port scan
+nmap -sC -sV -p- 192.168.8.179</code></pre>
+      <p>
+        Nmap returned two open ports: <strong>22 (SSH)</strong> and <strong>80 (HTTP)</strong>. Nothing unusual in the service versions. Added the target to <code>/etc/hosts</code> and moved on.
+      </p>
+
+      <h2>Enumeration</h2>
+      <p>
+        Hit port 80 first. Ran <code>dirb</code> and <code>nikto</code> against the HTTP service looking for hidden directories or misconfigurations. Found nothing beyond a default <code>index.html</code>. The web surface was completely flat — no forms, no parameters, no interesting headers.
+      </p>
+      <div class="note warn">
+        <span class="ni">⚠</span>
+        <span>When HTTP is a dead end, SSH becomes the priority target. Don't spend too long banging on a door that has nothing behind it.</span>
+      </div>
+      <p>
+        With HTTP exhausted, I pivoted to port 22. The attack surface here is straightforward: SSH with no key-based auth enforcement means password brute-force is viable if you have the right wordlist and a reasonable user list.
+      </p>
+
+      <h2>Exploitation</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n">01</div>
+          <div class="step-b">
+            <h4>Build user wordlist</h4>
+            <p>Created a minimal user list with two candidates: <code>gift</code> (machine name, often a hint) and <code>root</code>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">02</div>
+          <div class="step-b">
+            <h4>Brute force SSH with ncrack</h4>
+            <p>Ran ncrack against port 22 with the user list and <code>rockyou.txt</code> as the password wordlist.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">03</div>
+          <div class="step-b">
+            <h4>Hit confirmed</h4>
+            <p>Got a valid credential hit almost immediately.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">04</div>
+          <div class="step-b">
+            <h4>SSH in as root</h4>
+            <p>Logged in directly as root. No privilege escalation needed — straight to both flags.</p>
+          </div>
+        </div>
+      </div>
+
+      <pre data-lang="bash"><code>ncrack -U users.txt -P /usr/share/wordlists/rockyou.txt ssh://192.168.8.179</code></pre>
+
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><strong>Credential found:</strong> <code>root:simple</code> — SSH'd in as root, collected user.txt and root.txt.</span>
+      </div>
+
+      <h2>Takeaways</h2>
+      <p>
+        Gift is a machine about <strong>not getting tunnel vision</strong>. The instinct when you hit a wall on HTTP is to dig harder — more fuzzing, more tools, more time. Sometimes the right move is to just turn around and look at what else is open.
+      </p>
+      <p>
+        The real finding here is a weak root password on an internet-facing SSH port. In a real engagement that's a critical — direct root access with no exploitation, just a dictionary word. The fix is obvious: disable password auth, enforce key-based SSH, never expose SSH directly if you can help it.
+      </p>
+      <p>
+        Machine name as username hint is a pattern worth filing away. CTF and lab designers love to hide usernames in plain sight.
+      </p>
+
+    </article>
+
+    <div class="post-nav">
+      <a class="pn-link" href="../hacking/">
+        <span class="pn-dir">← Back</span>
+        <span class="pn-title">All Hacking posts</span>
+      </a>
+    </div>
+
+  </div>
+
+  <footer><div class="foot-inner">
+    <div class="foot-l">Kismet · <a href="https://twitter.com/kism3t_09" target="_blank" rel="noopener">Twitter</a> · <a href="https://github.com/kism37" target="_blank" rel="noopener">GitHub</a></div>
+    <div class="foot-r">kism37.github.io</div>
+  </div></footer>
+
+  <script src="../../assets/main.js"></script>
+</body>
+</html>

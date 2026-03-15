@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PicoCTF 2023 Writeup · Kismet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/style.css" />
+  <style>
+    .post-hero {
+      padding: 5rem 0 3rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .post-label {
+      font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--amber); margin-bottom: .8rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .post-label::before { content: ''; width: 1.5rem; height: 1px; background: var(--amber); }
+    .post-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: var(--white); line-height: 1.1; margin-bottom: .8rem;
+    }
+    .post-sub {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-size: 1.1rem;
+      color: var(--mid); margin-bottom: 2rem;
+    }
+    .post-meta-row {
+      display: flex; align-items: center; gap: 1.2rem;
+      flex-wrap: wrap; padding-top: 1.5rem;
+      border-top: 1px solid var(--rule);
+    }
+    .pmeta { font-size: .68rem; color: var(--dim); display: flex; align-items: center; gap: .4rem; }
+    .pmeta-label { color: var(--amber); opacity: .7; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; }
+
+    /* TOC */
+    .toc {
+      background: var(--ink2); border: 1px solid var(--rule);
+      border-left: 2px solid var(--amber);
+      padding: 1.4rem 1.6rem; margin: 2.5rem 0;
+    }
+    .toc-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--bright); margin-bottom: 1rem; }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; counter-reset: toc; }
+    .toc-list li { counter-increment: toc; }
+    .toc-list a { font-size: .75rem; color: var(--dim); text-decoration: none; display: flex; align-items: center; gap: .6rem; transition: color .15s; }
+    .toc-list a::before { content: counter(toc, decimal-leading-zero); font-size: .6rem; color: var(--amber); opacity: .5; min-width: 1.5rem; }
+    .toc-list a:hover { color: var(--amber); }
+    .toc-sub { padding-left: 2.1rem; margin-top: .2rem; display: flex; flex-direction: column; gap: .2rem; }
+    .toc-sub a { font-size: .7rem; }
+    .toc-sub a::before { display: none; }
+
+    /* Article */
+    article { padding: 2rem 0 5rem; max-width: 720px; }
+    article h2 {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: .95rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--bright); margin: 3.5rem 0 1rem;
+      padding-top: 3rem; border-top: 1px solid var(--rule);
+    }
+    article h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    article h3 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.2rem; color: var(--bright);
+      margin: 2rem 0 .8rem; font-weight: normal;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    article h3 .cat-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+      padding: .15rem .5rem; border: 1px solid;
+      font-style: normal;
+    }
+    article h3 .cat-tag.forensics { border-color: rgba(167,139,250,.4); color: #a78bfa; }
+    article h3 .cat-tag.crypto    { border-color: rgba(255,179,71,.4);  color: var(--amber); }
+    article h3 .cat-tag.rev       { border-color: rgba(68,224,138,.4);  color: var(--green); }
+    article p { font-size: .88rem; font-weight: 300; color: var(--mid); line-height: 2; margin-bottom: 1.2rem; }
+    article p strong { color: var(--bright); font-weight: 500; }
+    article p em { color: var(--amber); font-style: normal; }
+    article ul { margin: 0 0 1.2rem 0; list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+    article li { font-size: .86rem; font-weight: 300; color: var(--mid); padding-left: 1.2rem; position: relative; line-height: 1.8; }
+    article li::before { content: '—'; position: absolute; left: 0; color: var(--amber); font-size: .7rem; }
+    article pre { background: var(--ink2); border: 1px solid var(--rule); padding: 1.2rem 1.4rem; overflow-x: auto; margin: 1.2rem 0 1.8rem; position: relative; }
+    article pre::after { content: attr(data-lang); position: absolute; top: .5rem; right: .7rem; font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); opacity: .4; }
+    article code { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--amber); line-height: 1.7; }
+    article p code { background: var(--ink2); padding: .1rem .35rem; font-size: .78rem; }
+    article a { color: var(--amber); text-underline-offset: 3px; }
+
+    /* Callouts */
+    .note { padding: 1rem 1.2rem; border: 1px solid; border-left: 2px solid; margin: 1.5rem 0; display: flex; gap: .8rem; align-items: flex-start; font-size: .82rem; font-weight: 300; line-height: 1.8; }
+    .note.flag  { border-color: rgba(68,224,138,.2); color: var(--mid); background: rgba(68,224,138,.03); }
+    .note.flag .ni { color: var(--green); flex-shrink: 0; }
+    .note.info  { border-color: rgba(200,241,53,.15); color: var(--mid); }
+    .note.info .ni { color: var(--lime); flex-shrink: 0; }
+    .note.warn  { border-color: rgba(255,179,71,.2); color: var(--mid); }
+    .note.warn .ni { color: var(--amber); flex-shrink: 0; }
+
+    /* Challenge divider */
+    .chall-divider { border: none; border-top: 1px dashed rgba(255,255,255,.08); margin: 2.5rem 0; }
+
+    /* Post nav */
+    .post-nav { display: flex; justify-content: space-between; padding-top: 2.5rem; border-top: 1px solid var(--rule); margin-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .pn-link { text-decoration: none; display: flex; flex-direction: column; gap: .2rem; max-width: 45%; }
+    .pn-dir { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--amber); opacity: .6; }
+    .pn-title { font-size: .8rem; color: var(--mid); transition: color .15s; }
+    .pn-link:hover .pn-title { color: var(--white); }
+    .pn-link.right { text-align: right; margin-left: auto; }
+
+    #kprog { position: fixed; top: 0; left: 0; height: 1px; background: var(--amber); z-index: 999; width: 0%; }
+  </style>
+</head>
+<body>
+  <div id="k-cur"></div>
+  <div id="kprog"></div>
+  <div class="grain"></div>
+
+  <div class="search-overlay" id="k-search">
+    <div class="search-box">
+      <input class="search-input" id="k-sinput" type="text" placeholder="Search..." autocomplete="off" />
+      <div class="search-hint">esc to close</div>
+      <div class="search-results" id="k-sresults"></div>
+    </div>
+  </div>
+
+  <nav><div class="nav-inner">
+    <a class="nav-logo" href="/"><span class="nav-logo-dot"></span>Kismet</a>
+    <ul class="nav-links">
+      <li><a href="/">home</a></li>
+      <li><a href="../hacking/">hacking</a></li>
+      <li><a href="../ctf/" class="active">ctf</a></li>
+      <li><a href="../research/">research</a></li>
+      <li><a href="../misc/">misc</a></li>
+      <li><a href="../../tags.html">tags</a></li>
+      <li><a href="../../whoami.html">whoami</a></li>
+      <li><button class="nav-search" data-search>⌕</button></li>
+    </ul>
+  </div></nav>
+
+  <div class="wrap page-body">
+
+    <div class="post-hero">
+      <div class="post-label">⚑ CTF · PicoCTF 2023</div>
+      <h1 class="post-title">PicoCTF 2023 — Selected Writeups</h1>
+      <p class="post-sub">Two weeks. Team 8h037. 1st in Africa. Here's how we did it.</p>
+      <div class="post-meta-row">
+        <div class="pmeta"><span class="pmeta-label">Event</span> PicoCTF 2023</div>
+        <div class="pmeta"><span class="pmeta-label">Team</span> 8h037</div>
+        <div class="pmeta"><span class="pmeta-label">Read</span> 18 min</div>
+        <div class="pmeta"><span class="pmeta-label">Categories</span> Forensics · Crypto · Reverse Engineering</div>
+      </div>
+    </div>
+
+    <article>
+
+      <h2 id="intro">Introduction</h2>
+      <p>
+        PicoCTF 2023 ran for two weeks and our team 8h037 came away with <strong>1st place in Africa</strong>. This is my personal writeup covering the challenges I solved — Forensics, Cryptography, and Reverse Engineering. For the rest of the team's solutions, check out <a href="https://h4ckyou.github.io/posts/ctf/picoctf/writeup.html" target="_blank" rel="noopener">h4ckyou's writeup</a>.
+      </p>
+      <div class="note info">
+        <span class="ni">ℹ</span>
+        <span>I'm writing these from memory and notes — some flag values are included, some screenshots referenced. The methodology is the important part.</span>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ul class="toc-list">
+          <li><a href="#forensics">Forensics</a>
+            <div class="toc-sub">
+              <a href="#whoisit">Who Is It</a>
+              <a href="#findandopen">Find And Open</a>
+              <a href="#msb">MSB</a>
+              <a href="#unforgottenbits">Unforgotten Bits</a>
+            </div>
+          </li>
+          <li><a href="#crypto">Cryptography</a>
+            <div class="toc-sub">
+              <a href="#pa2">Power Analysis: Part 2</a>
+              <a href="#pa1">Power Analysis: Part 1</a>
+              <a href="#pawarmup">Power Analysis: Warmup</a>
+            </div>
+          </li>
+          <li><a href="#rev">Reverse Engineering</a>
+            <div class="toc-sub">
+              <a href="#vm0">Virtual Machine 0</a>
+              <a href="#vm1">Virtual Machine 1</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ══════════════════════════════════════ FORENSICS ══ -->
+      <h2 id="forensics">Forensics</h2>
+
+      <h3 id="whoisit">Who Is It <span class="cat-tag forensics">Forensics</span></h3>
+      <p>
+        The challenge gave us an email file and asked us to identify whose mail server it actually originated from. The key was in the email headers — a raw IP address <code>173.249.33.206</code> buried in the <code>Received</code> chain.
+      </p>
+      <p>
+        I ran a <strong>WHOIS lookup</strong> on that IP via <a href="https://www.whois.com/" target="_blank" rel="noopener">whois.com</a> and pulled the registrant name directly. That was the flag.
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: PicoCTF{Wilhelm Zwalina}</code></span>
+      </div>
+      <p>
+        Lesson: email header analysis is a real-world skill. OSINT on IP addresses — who owns it, what ASN, what org — is bread and butter in threat intelligence work.
+      </p>
+
+      <hr class="chall-divider" />
+
+      <h3 id="findandopen">Find And Open <span class="cat-tag forensics">Forensics</span></h3>
+      <p>
+        Two files: a password-protected <code>flag.zip</code> and a <code>.pcap</code>. The password was hidden in the packet capture.
+      </p>
+      <p>
+        Opened the pcap in <strong>Wireshark</strong> and filtered through the data streams. Found a Base64-encoded string in the packet data, decoded it via <a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener">CyberChef</a>, and used the result to extract the zip.
+      </p>
+      <pre data-lang="bash"><code># Decode Base64 in CyberChef → get zip password
+# Unzip with recovered password
+unzip -P &lt;decoded_password&gt; flag.zip</code></pre>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{R34DING_L0Kd_fil56_succ3ss_cbf2ebf6}</code></span>
+      </div>
+
+      <hr class="chall-divider" />
+
+      <h3 id="msb">MSB <span class="cat-tag forensics">Forensics</span></h3>
+      <p>
+        A corrupted-looking image with a hint in the name: MSB — Most Significant Bit. Classic steganography technique where data is encoded in the most significant bits of pixel values rather than the least significant (LSB) which tools like steghide target.
+      </p>
+      <p>
+        Used <a href="https://stegonline.georgeom.net/upload" target="_blank" rel="noopener">stegonline</a>, uploaded the image, selected MSB bit order, and extracted the hidden data as readable ASCII. Downloaded the output file and grepped for the flag.
+      </p>
+      <pre data-lang="bash"><code>cat Ninja-and-Prince-Genji-Ukiyoe-Utagawa-Kunisadaflag.dat | grep picoCTF</code></pre>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{15_y0ur_que57_qu1x071c_0r_h3r01c_06326238}</code></span>
+      </div>
+
+      <hr class="chall-divider" />
+
+      <h3 id="unforgottenbits">Unforgotten Bits <span class="cat-tag forensics">Forensics</span></h3>
+      <p>
+        This one took me a full day. A disk image — the kind of challenge where you have to build an investigation layer by layer rather than find a single trick.
+      </p>
+      <p>
+        Loaded the disk image into <strong>Autopsy</strong> for filesystem analysis. Key findings:
+      </p>
+      <ul>
+        <li>IRC logs in <code>/home/yone/irclogs/</code> — contained steghide credentials</li>
+        <li><code>.bmp</code> images in <code>/home/yone/gallery/</code> — the steghide targets</li>
+        <li>Encrypted <code>.txt.enc</code> files extracted from images using <code>openssl aes-256-cbc</code></li>
+        <li>A final image (<code>7.bmp</code>) with a different password — had to brute force it</li>
+      </ul>
+      <p>
+        The 7.bmp password was a League of Legends champion name combination. The IRC logs had half the password (<code>yasuoaatrox</code>) and notes in <code>/home/yone/notes/</code> hinted at the other half. I generated a full wordlist of LoL champion name combinations with a Python script, then prepended the known prefix and brute-forced with steghide.
+      </p>
+      <pre data-lang="python"><code># Generate champion name combinations
+with open('champions.txt') as f:
+    champions = [c.strip() for c in f.readlines()]
+
+with open('wordlistsLOL.txt', 'w') as f:
+    for i in range(len(champions)):
+        for j in range(i+1, len(champions)):
+            f.write(champions[i] + champions[j] + '\n')</code></pre>
+      <pre data-lang="bash"><code># Decrypt with recovered key/IV/salt from Autopsy
+sudo openssl aes-256-cbc -d \
+  -in ledger.1.txt.enc -out out1.txt \
+  -K a9f86b874bd927057a05408d274ee3a88a83ad972217b81fdc2bb8e8ca8736da \
+  -iv 908458e48fc8db1c5a46f18f0feb119f \
+  -S 2350e88cbeaf16c9</code></pre>
+      <p>
+        The final unlock came from a binary string in the disk image that decoded with a golden ratio base cipher — found by following browsing history hints inside the image.
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{f473_53413d_40405b89}</code></span>
+      </div>
+      <div class="note warn">
+        <span class="ni">⚠</span>
+        <span>This challenge is a masterclass in breadcrumb-following. Every artifact pointed to the next. The lesson: don't skip anything in forensics — the IRC log that looked like noise was the key.</span>
+      </div>
+
+      <!-- ══════════════════════════════════════ CRYPTO ══ -->
+      <h2 id="crypto">Cryptography</h2>
+
+      <h3 id="pa2">Power Analysis: Part 2 <span class="cat-tag crypto">Crypto</span></h3>
+      <p>
+        Power analysis attacks exploit the correlation between an AES encryption key and the power consumption during SubBytes operations. We're given 100 trace files, each containing a plaintext and a power trace.
+      </p>
+      <p>
+        Step one: parse all trace files and build a <code>traces.json</code> in the format expected by existing solve scripts.
+      </p>
+      <pre data-lang="python"><code>import json
+
+plaintexts, traces = [], []
+
+for i in range(100):
+    filename = f'trace{str(i).zfill(2)}.txt'
+    pt, trace = open(filename).read().split('\n')
+    pt = bytes.fromhex(pt.split(' ')[-1])
+    trace = eval(trace.split("Power trace: ")[-1])
+    plaintexts.append(pt)
+    traces.append(trace)
+
+out = [{"pt": list(pt), "pm": trace} for pt, trace in zip(plaintexts, traces)]
+with open("traces.json", "w") as f:
+    f.write(json.dumps(out))</code></pre>
+      <p>
+        Then ran a Correlation Power Analysis (CPA) script adapted from a Google CTF 2022 writeup. First attempt returned an incorrect flag — found a better implementation on <a href="https://github.com/pkiluke/google-ctf-2022/blob/main/electric-mayhem-cls.py" target="_blank" rel="noopener">GitHub</a>, stripped a few incompatible lines, and ran it locally (the webshell kept killing the process).
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{2f4981b159a0a78a5e222bc537f894ae}</code></span>
+      </div>
+
+      <hr class="chall-divider" />
+
+      <h3 id="pa1">Power Analysis: Part 1 <span class="cat-tag crypto">Crypto</span></h3>
+      <p>
+        Same technique as Part 2, but the traces come from a live server rather than pre-recorded files. Connected to the server, sent 100 crafted plaintexts, collected the power traces, built <code>traces.json</code>, and ran the same CPA solve script.
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{65cce0eab280e39d12625c7315b03fa1}</code></span>
+      </div>
+
+      <hr class="chall-divider" />
+
+      <h3 id="pawarmup">Power Analysis: Warmup <span class="cat-tag crypto">Crypto</span></h3>
+      <p>
+        The warmup was actually the hardest of the three to script — 4 hours of work. The server leaks a single bit per query. You send a 16-byte plaintext, it returns a leakage result (7 or 8), and the bit value (0 or 1) encodes information about the XOR of one AES Sbox lookup with a key byte.
+      </p>
+      <p>
+        To recover each of the 16 key bytes, I had to send 256 plaintexts varying one byte position at a time, collect the leakage values, map 7→0 and 8→1, then brute-force the key byte by finding which value is consistent with the Sbox outputs across all 256 plaintext guesses.
+      </p>
+      <pre data-lang="python"><code>from pwn import remote
+
+data1 = b""
+data3 = b"000000000000000000000000000000"
+fo = open("output.txt", 'wb')
+
+for i in range(256):
+    r = remote('saturn.picoctf.net', 64600)
+    r.recvuntil("Please provide 16 bytes of plaintext encoded as hex: ")
+    data2 = str(hex(i))[2:].encode().zfill(2)
+    r.sendline(data1 + data2 + data3)
+    r.recvuntil("leakage result: ")
+    fo.write(r.recvline().rstrip() + b"\n")
+fo.close()</code></pre>
+      <p>
+        Repeated this 16 times — shifting <code>data1</code> forward and shrinking <code>data3</code> each round to target each key byte position. Recovered all 16 key bytes as decimals, converted to hex via CyberChef.
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{9dac9d914154db052d7ce1a110fbb3aa}</code></span>
+      </div>
+
+      <!-- ══════════════════════════════════════ REV ══ -->
+      <h2 id="rev">Reverse Engineering</h2>
+
+      <h3 id="vm0">Virtual Machine 0 <span class="cat-tag rev">Rev</span></h3>
+      <p>
+        Two files: a <code>.dae</code> (3D model) and an <code>input.txt</code> containing numbers. The 3D model was a gear assembly — opened in Blender to analyse the gear ratio.
+      </p>
+      <p>
+        Deleted the outer blocks to expose the axles. Counted the teeth: <strong>40 teeth on the red axle, 8 on the blue</strong> — gear ratio of 5:1. Multiplied each number in <code>input.txt</code> by 5, converted the results to binary, then decoded binary to ASCII to get the flag.
+      </p>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{g34r5_0f_m0r3_3537e50a}</code></span>
+      </div>
+
+      <hr class="chall-divider" />
+
+      <h3 id="vm1">Virtual Machine 1 <span class="cat-tag rev">Rev</span></h3>
+      <p>
+        Same format as VM0 but with a three-gear compound system — significantly more involved. Connected to a live server that gives an input number (changes on restart), loaded the <code>.dae</code> in Blender.
+      </p>
+      <p>
+        Calculated the compound gear ratio using the formula for adjacent gear trains. After working through it on paper, I got a multiplier of <strong>9359</strong>. Multiplied the server's input number by 9359, submitted the result, and got the flag.
+      </p>
+      <div class="note warn">
+        <span class="ni">⚠</span>
+        <span>The instance died mid-solve, changing the input number. Always note your server input before doing long calculations offline.</span>
+      </div>
+      <div class="note flag">
+        <span class="ni">⚑</span>
+        <span><code>Flag: picoCTF{m0r3_g34r5_3g4d_1fe58bda}</code></span>
+      </div>
+
+      <h2 id="outro">Closing Thoughts</h2>
+      <p>
+        Two weeks, a dozen challenges, 1st in Africa. The challenges that took the longest — Unforgotten Bits and Power Analysis Warmup — were the ones that taught the most. Forensics rewards patience and methodical enumeration. Power analysis is a real hardware attack technique compressed into a CTF problem. The gear VM challenges were genuinely creative.
+      </p>
+      <p>
+        Playing with team 8h037 made the hard challenges shorter and the easy ones more fun. CTFS are better with people who can hold the thread when you lose it.
+      </p>
+
+    </article>
+
+    <div class="post-nav">
+      <a class="pn-link" href="../ctf/">
+        <span class="pn-dir">← Back</span>
+        <span class="pn-title">All CTF posts</span>
+      </a>
+    </div>
+
+  </div>
+
+  <footer><div class="foot-inner">
+    <div class="foot-l">Kismet · <a href="https://twitter.com/kism3t_09" target="_blank" rel="noopener">Twitter</a> · <a href="https://github.com/kism37" target="_blank" rel="noopener">GitHub</a></div>
+    <div class="foot-r">kism37.github.io</div>
+  </div></footer>
+
+  <script src="../../assets/main.js"></script>
+</body>
+</html>
