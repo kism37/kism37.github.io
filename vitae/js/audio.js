@@ -7,44 +7,26 @@ const TRACK = {
   start: 52,
 };
 
-function loadYouTubeAPI() {
-  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
-  return new Promise((resolve, reject) => {
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      if (typeof prev === "function") prev();
-      resolve(window.YT);
-    };
-    if (!document.querySelector("script[src*='youtube.com/iframe_api']")) {
-      const s = document.createElement("script");
-      s.src = "https://www.youtube.com/iframe_api";
-      s.onerror = () => reject(new Error("YouTube API blocked"));
-      document.head.appendChild(s);
-    }
-    setTimeout(() => {
-      if (window.YT && window.YT.Player) resolve(window.YT);
-    }, 4000);
-  });
-}
-
 export function createAudio() {
   let ctx = null;
   let master;
-  let player = null;
   let armed = false;
   let usingTrack = false;
+  let iframe = null;
+
   const dock = () => document.getElementById("breath-dock");
+  const host = () => document.getElementById("yt-player");
 
   function ensureCtx() {
     if (ctx) return ctx;
     const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) throw new Error("AudioContext missing");
+    if (!AC) return null;
     ctx = new AC();
     return ctx;
   }
 
   async function resume() {
-    ensureCtx();
+    if (!ensureCtx()) return false;
     if (ctx.state === "suspended") await ctx.resume();
     return ctx.state === "running";
   }
@@ -77,111 +59,62 @@ export function createAudio() {
     if (el) el.hidden = !on;
   }
 
-  function setTrackVolume() {
-    if (!player || typeof player.setVolume !== "function") return;
-    const vol = Math.round(58 + state.energy * 22 + state.attention * 16);
-    try {
-      player.setVolume(Math.max(28, Math.min(92, vol)));
-    } catch {
-      /* player not ready */
-    }
+  function embedSrc() {
+    const origin = encodeURIComponent(location.origin);
+    return `https://www.youtube.com/embed/${TRACK.id}?autoplay=1&mute=0&start=${TRACK.start}&loop=1&playlist=${TRACK.id}&playsinline=1&rel=0&modestbranding=1&origin=${origin}`;
   }
 
-  async function startTrack() {
-    showDock(true);
-    const YT = await loadYouTubeAPI();
-    if (player && typeof player.playVideo === "function") {
-      player.unMute();
-      player.playVideo();
-      setTrackVolume();
-      usingTrack = true;
-      return true;
-    }
-    const host = document.getElementById("yt-player");
-    if (!host) return false;
-    await new Promise((resolve) => {
-      player = new YT.Player("yt-player", {
-        videoId: TRACK.id,
-        width: host.clientWidth || 200,
-        height: host.clientHeight || 112,
-        playerVars: {
-          autoplay: 1,
-          start: TRACK.start,
-          loop: 1,
-          playlist: TRACK.id,
-          modestbranding: 1,
-          rel: 0,
-          playsinline: 1,
-          origin: location.origin,
-          enablejsapi: 1,
-        },
-        events: {
-          onReady(e) {
-            try {
-              e.target.unMute();
-              e.target.setVolume(70);
-              e.target.playVideo();
-              usingTrack = true;
-            } catch {
-              usingTrack = false;
-            }
-            resolve();
-          },
-          onError() {
-            usingTrack = false;
-            resolve();
-          },
-          onStateChange(e) {
-            if (e.data === YT.PlayerState.ENDED) {
-              e.target.seekTo(TRACK.start, true);
-              e.target.playVideo();
-            }
-          },
-        },
-      });
-    });
-    return usingTrack;
+  function mountIframe() {
+    const box = host();
+    const panel = dock();
+    if (!box || !panel) return false;
+    panel.hidden = false;
+    box.replaceChildren();
+    iframe = document.createElement("iframe");
+    iframe.src = embedSrc();
+    iframe.title = TRACK.title;
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.setAttribute("frameborder", "0");
+    box.appendChild(iframe);
+    usingTrack = true;
+    return true;
   }
 
   function stopTrack() {
-    if (player && typeof player.pauseVideo === "function") {
-      try {
-        player.mute();
-        player.pauseVideo();
-      } catch {
-        /* ignore */
-      }
+    const box = host();
+    if (iframe) {
+      iframe.src = "about:blank";
+      iframe.remove();
     }
+    iframe = null;
+    if (box) box.replaceChildren();
+    usingTrack = false;
     showDock(false);
   }
 
   async function unlock() {
-    ensureCtx();
-    await resume();
-    buildTicks();
     state.audio = true;
-    const ok = await startTrack();
-    if (!ok) {
-      showDock(false);
+    const mounted = mountIframe();
+    try {
+      ensureCtx();
+      await resume();
+      buildTicks();
+    } catch {
+      /* ticks are optional */
     }
-    return ctx.state === "running";
+    return mounted;
   }
 
   async function setEnabled(on) {
-    state.audio = on;
-    if (on) {
-      const ok = await unlock();
-      if (!ok) state.audio = false;
-      return state.audio;
-    }
+    if (on) return unlock();
+    state.audio = false;
     stopTrack();
     return false;
   }
 
-  function tick() {
-    if (!state.audio) return;
-    if (usingTrack) setTrackVolume();
-  }
+  function tick() {}
 
   function pluck(intensity = 1) {
     beep(330 + state.morph * 24, "triangle", 0.08 * intensity, 0.35);
@@ -209,14 +142,13 @@ export function createAudio() {
     reject,
     whoosh,
     toggle,
+    remount: mountIframe,
     track: TRACK,
     get armed() {
-      return armed || usingTrack;
+      return usingTrack || armed;
     },
     get running() {
       return !!(state.audio && usingTrack);
     },
   };
 }
-
-loadYouTubeAPI().catch(() => {});

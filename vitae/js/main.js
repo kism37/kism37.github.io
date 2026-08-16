@@ -669,6 +669,12 @@ callsign.addEventListener("input", previewFromForm);
 intent.addEventListener("input", previewFromForm);
 scopeEl.addEventListener("input", () => setScopeText(scopeEl.value));
 
+document.getElementById("btn-asake").addEventListener("click", () => {
+  audio.remount();
+  setSoundUI(true);
+  statusLine.textContent = "Asake · tap the red play if still silent";
+});
+
 soundBtn.addEventListener("click", async () => {
   try {
     const on = await audio.toggle();
