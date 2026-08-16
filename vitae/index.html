@@ -128,10 +128,9 @@
       <div class="examples" id="examples" aria-label="Example specimens"></div>
       <div class="gate-actions">
         <button type="submit" class="btn primary" id="wake-silent" data-magnetic>Open the field</button>
-        <button type="button" class="btn ghost" id="wake-sound" data-magnetic>Open with Asake</button>
       </div>
     </form>
-    <p class="hint">Space feeds it. M toggles sound. 1 to 8 jumps phases.</p>
+    <p class="hint">Asake starts with the page. M mutes. Space feeds it.</p>
     <div class="cell" aria-hidden="true">
       <span class="cell-core"></span>
       <span class="cell-ring"></span>
@@ -215,7 +214,7 @@
           <span class="word">a</span>
           <span class="word">reply</span>
         </h2>
-        <p class="copy">C2, exfil, a callback that should not exist. Sound is optional. If you armed breath, the drone is the organism thinking. A quiet channel is still a channel.</p>
+        <p class="copy">C2, exfil, a callback that should not exist. Asake is already in the room. M cuts him. A quiet channel is still a channel.</p>
       </div>
     </section>
 
@@ -330,9 +329,17 @@
     </div>
   </aside>
 
-  <aside class="breath-dock" id="breath-dock" hidden>
-    <div class="yt-frame" id="yt-player"></div>
-    <button type="button" class="btn ghost breath-play" id="btn-asake">Tap if silent</button>
+  <aside class="breath-dock" id="breath-dock">
+    <div class="yt-frame" id="yt-player">
+      <iframe
+        id="yt-embed"
+        title="Asake Red Bull Symphonic"
+        src="https://www.youtube.com/embed/lIp-OwMozKI?autoplay=1&mute=0&start=52&loop=1&playlist=lIp-OwMozKI&playsinline=1&rel=0&modestbranding=1"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+    </div>
     <a class="breath-credit" href="https://www.youtube.com/watch?v=lIp-OwMozKI" target="_blank" rel="noopener">Asake · Red Bull Symphonic · official</a>
   </aside>
 

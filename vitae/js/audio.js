@@ -11,10 +11,10 @@ export function createAudio() {
   let ctx = null;
   let master;
   let armed = false;
-  let usingTrack = false;
+  let usingTrack = true;
   let iframe = null;
+  let kicked = false;
 
-  const dock = () => document.getElementById("breath-dock");
   const host = () => document.getElementById("yt-player");
 
   function ensureCtx() {
@@ -54,61 +54,73 @@ export function createAudio() {
     o.stop(now + dur + 0.02);
   }
 
-  function showDock(on) {
-    const el = dock();
-    if (el) el.hidden = !on;
-  }
-
   function embedSrc() {
-    const origin = encodeURIComponent(location.origin);
-    return `https://www.youtube.com/embed/${TRACK.id}?autoplay=1&mute=0&start=${TRACK.start}&loop=1&playlist=${TRACK.id}&playsinline=1&rel=0&modestbranding=1&origin=${origin}`;
+    return `https://www.youtube.com/embed/${TRACK.id}?autoplay=1&mute=0&start=${TRACK.start}&loop=1&playlist=${TRACK.id}&playsinline=1&rel=0&modestbranding=1`;
   }
 
   function mountIframe() {
     const box = host();
-    const panel = dock();
-    if (!box || !panel) return false;
-    panel.hidden = false;
-    box.replaceChildren();
-    iframe = document.createElement("iframe");
-    iframe.src = embedSrc();
-    iframe.title = TRACK.title;
+    const dock = document.getElementById("breath-dock");
+    if (!box || !dock) return false;
+    dock.hidden = false;
+    iframe = document.getElementById("yt-embed");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.id = "yt-embed";
+      iframe.title = TRACK.title;
+      iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+      iframe.setAttribute("allowfullscreen", "");
+      box.replaceChildren(iframe);
+    }
     iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    iframe.referrerPolicy = "strict-origin-when-cross-origin";
-    iframe.setAttribute("allowfullscreen", "");
-    iframe.setAttribute("frameborder", "0");
-    box.appendChild(iframe);
+    iframe.src = embedSrc();
     usingTrack = true;
+    state.audio = true;
     return true;
   }
 
   function stopTrack() {
-    const box = host();
-    if (iframe) {
-      iframe.src = "about:blank";
-      iframe.remove();
-    }
-    iframe = null;
-    if (box) box.replaceChildren();
+    iframe = document.getElementById("yt-embed");
+    if (iframe) iframe.src = "about:blank";
     usingTrack = false;
-    showDock(false);
+  }
+
+  function kick() {
+    if (kicked || !state.audio) return;
+    kicked = true;
+    mountIframe();
+    resume().then(() => buildTicks()).catch(() => {});
+  }
+
+  function autostart() {
+    state.audio = true;
+    mountIframe();
+    resume().then(() => buildTicks()).catch(() => {});
+    const once = () => kick();
+    ["pointerdown", "pointermove", "wheel", "keydown", "touchstart", "scroll"].forEach((ev) => {
+      window.addEventListener(ev, once, { once: true, capture: true, passive: true });
+    });
   }
 
   async function unlock() {
     state.audio = true;
-    const mounted = mountIframe();
+    kicked = false;
+    mountIframe();
     try {
-      ensureCtx();
       await resume();
       buildTicks();
     } catch {
-      /* ticks are optional */
+      /* optional */
     }
-    return mounted;
+    return true;
   }
 
   async function setEnabled(on) {
-    if (on) return unlock();
+    if (on) {
+      kicked = false;
+      return unlock();
+    }
     state.audio = false;
     stopTrack();
     return false;
@@ -142,6 +154,7 @@ export function createAudio() {
     reject,
     whoosh,
     toggle,
+    autostart,
     remount: mountIframe,
     track: TRACK,
     get armed() {

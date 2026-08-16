@@ -309,17 +309,7 @@ function previewFromForm() {
   updateHUD();
 }
 
-async function wake(withSound) {
-  if (withSound) {
-    try {
-      const ok = await audio.unlock();
-      setSoundUI(true);
-      statusLine.textContent = ok ? "Asake · Symphonic" : "audio blocked by the browser";
-    } catch {
-      setSoundUI(false);
-      statusLine.textContent = "audio unavailable";
-    }
-  }
+async function wake() {
   const spec = formToSpecimen();
   applySpecimen(spec);
   await setScopeText(spec.scopeText);
@@ -332,7 +322,7 @@ async function wake(withSound) {
   persist();
   syncURL();
   if (state.awake) {
-    if (!withSound) statusLine.textContent = "specimen retargeted";
+    statusLine.textContent = "specimen retargeted";
     updateHUD();
     return;
   }
@@ -343,9 +333,7 @@ async function wake(withSound) {
   story.hidden = false;
   type.collect();
   type.recache();
-  statusLine.textContent = state.audio
-    ? "awake · Asake · Symphonic"
-    : (state.name ? `awake · ${state.name}` : "awake · unaddressed");
+  statusLine.textContent = state.name ? `awake · ${state.name}` : "awake · unaddressed";
   updateHUD();
   applySceneClasses();
   announce(0);
@@ -610,9 +598,8 @@ function loop(now) {
 
 document.getElementById("address-form").addEventListener("submit", (e) => {
   e.preventDefault();
-  wake(false);
+  wake();
 });
-document.getElementById("wake-sound").addEventListener("click", () => wake(true));
 document.getElementById("btn-feed").addEventListener("click", (e) => feed(e.clientX, e.clientY, 1.15));
 document.getElementById("btn-again").addEventListener("click", burnAndReseed);
 document.getElementById("btn-seed").addEventListener("click", copyPacket);
@@ -668,12 +655,6 @@ document.getElementById("reject-list").addEventListener("click", async (e) => {
 callsign.addEventListener("input", previewFromForm);
 intent.addEventListener("input", previewFromForm);
 scopeEl.addEventListener("input", () => setScopeText(scopeEl.value));
-
-document.getElementById("btn-asake").addEventListener("click", () => {
-  audio.remount();
-  setSoundUI(true);
-  statusLine.textContent = "Asake · tap the red play if still silent";
-});
 
 soundBtn.addEventListener("click", async () => {
   try {
@@ -734,7 +715,7 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     e.preventDefault();
     if (!state.awake) {
-      wake(false);
+      wake();
       return;
     }
     feed(state.mouse.x || state.width / 2, state.mouse.y || state.height / 2, 1);
@@ -785,6 +766,10 @@ window.addEventListener("resize", () => {
 
 if (state.mobile || state.reduced) document.body.classList.add("native-cursor");
 if (state.reduced) document.documentElement.classList.add("reduced");
+
+setSoundUI(true);
+audio.autostart();
+statusLine.textContent = "Asake · Symphonic";
 
 if (state.name) callsign.value = state.name;
 if (state.note) intent.value = state.note;
