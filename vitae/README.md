@@ -47,6 +47,6 @@ The daily tool. Paste a JWT, Set-Cookie, Authorization header, or a JS/response 
 
 ## Keys
 
-Breath starts with the page: official Asake Red Bull Symphonic stream. M or the speaker mutes. If the browser blocks unmuted autoplay, the first mouse move or tap starts it.
+Sound is a hidden looping bed (`audio/bed.mp3` if present, otherwise a generated drone). M or the speaker mutes. Browsers still need a first pointer or key before unmuted playback. Commercial tracks are not stored in this repo.
 
 T serum · V membrane · S packet · Space feed · M mute · 1-8 phases

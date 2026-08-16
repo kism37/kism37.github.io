@@ -660,7 +660,7 @@ soundBtn.addEventListener("click", async () => {
   try {
     const on = await audio.toggle();
     setSoundUI(on);
-    statusLine.textContent = on ? "Asake · Symphonic" : "silent";
+    statusLine.textContent = on ? "bed live" : "silent";
   } catch {
     setSoundUI(false);
     statusLine.textContent = "audio blocked by the browser";
@@ -684,7 +684,7 @@ window.addEventListener("pointerdown", (e) => {
 });
 window.addEventListener("pointerup", (e) => {
   if (state.awake && e.target.closest("canvas, .chapter, .story, body")) {
-    const ui = e.target.closest("button, a, input, label, textarea, .help, .hud, .chapters, .phase-strip, .address, .packet, .membrane, .serum-wrap, .breath-dock");
+    const ui = e.target.closest("button, a, input, label, textarea, .help, .hud, .chapters, .phase-strip, .address, .packet, .membrane, .serum-wrap");
     if (!ui) feed(e.clientX, e.clientY, 0.7);
   }
   state.mouse.down = false;
@@ -769,7 +769,7 @@ if (state.reduced) document.documentElement.classList.add("reduced");
 
 setSoundUI(true);
 audio.autostart();
-statusLine.textContent = "Asake · Symphonic";
+statusLine.textContent = "bed arming";
 
 if (state.name) callsign.value = state.name;
 if (state.note) intent.value = state.note;
