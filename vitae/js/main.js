@@ -310,6 +310,16 @@ function previewFromForm() {
 }
 
 async function wake(withSound) {
+  if (withSound) {
+    try {
+      const ok = await audio.unlock();
+      setSoundUI(true);
+      statusLine.textContent = ok ? "breath armed" : "audio blocked by the browser";
+    } catch {
+      setSoundUI(false);
+      statusLine.textContent = "audio unavailable";
+    }
+  }
   const spec = formToSpecimen();
   applySpecimen(spec);
   await setScopeText(spec.scopeText);
@@ -322,14 +332,9 @@ async function wake(withSound) {
   persist();
   syncURL();
   if (state.awake) {
-    statusLine.textContent = "specimen retargeted";
+    if (!withSound) statusLine.textContent = "specimen retargeted";
     updateHUD();
     return;
-  }
-  if (withSound) {
-    await audio.unlock();
-    audio.setEnabled(true);
-    setSoundUI(true);
   }
   state.awake = true;
   document.documentElement.classList.add("awake");
@@ -338,7 +343,9 @@ async function wake(withSound) {
   story.hidden = false;
   type.collect();
   type.recache();
-  statusLine.textContent = state.name ? `awake · ${state.name}` : "awake · unaddressed";
+  statusLine.textContent = state.audio
+    ? "awake · breath armed"
+    : (state.name ? `awake · ${state.name}` : "awake · unaddressed");
   updateHUD();
   applySceneClasses();
   announce(0);
@@ -663,9 +670,14 @@ intent.addEventListener("input", previewFromForm);
 scopeEl.addEventListener("input", () => setScopeText(scopeEl.value));
 
 soundBtn.addEventListener("click", async () => {
-  const on = await audio.toggle();
-  setSoundUI(on);
-  statusLine.textContent = on ? "breath armed" : "silent";
+  try {
+    const on = await audio.toggle();
+    setSoundUI(on);
+    statusLine.textContent = on ? "breath armed" : "silent";
+  } catch {
+    setSoundUI(false);
+    statusLine.textContent = "audio blocked by the browser";
+  }
 });
 
 function bindSceneJump(el) {
@@ -757,6 +769,7 @@ window.addEventListener("keydown", (e) => {
 
 document.addEventListener("visibilitychange", () => {
   state.hidden = document.hidden;
+  if (!document.hidden && state.audio) audio.resume();
 });
 
 window.addEventListener("resize", () => {

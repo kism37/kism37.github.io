@@ -6,7 +6,6 @@ export function createAudio() {
   let filter;
   let droneGain;
   let breathGain;
-  let pulseGain;
   let oscA;
   let oscB;
   let oscC;
@@ -14,58 +13,67 @@ export function createAudio() {
   let noiseSrc;
   let armed = false;
 
-  async function unlock() {
-    if (armed) {
-      if (ctx.state === "suspended") await ctx.resume();
-      return;
-    }
+  function ensureCtx() {
+    if (ctx) return ctx;
     const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error("AudioContext missing");
     ctx = new AC();
+    return ctx;
+  }
+
+  async function resume() {
+    ensureCtx();
+    if (ctx.state === "suspended") await ctx.resume();
+    return ctx.state === "running";
+  }
+
+  function buildGraph() {
+    if (armed) return;
     master = ctx.createGain();
-    master.gain.value = 0;
+    master.gain.value = 0.0001;
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -18;
-    comp.knee.value = 18;
-    comp.ratio.value = 3;
+    comp.threshold.value = -16;
+    comp.knee.value = 12;
+    comp.ratio.value = 2.5;
     master.connect(comp);
     comp.connect(ctx.destination);
 
     filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.value = 420;
-    filter.Q.value = 0.7;
+    filter.frequency.value = 720;
+    filter.Q.value = 0.55;
     filter.connect(master);
 
     droneGain = ctx.createGain();
-    droneGain.gain.value = 0.22;
+    droneGain.gain.value = 0.28;
     droneGain.connect(filter);
 
     oscA = ctx.createOscillator();
     oscB = ctx.createOscillator();
     oscC = ctx.createOscillator();
     oscA.type = "sine";
-    oscB.type = "sine";
-    oscC.type = "triangle";
-    oscA.frequency.value = 55;
-    oscB.frequency.value = 82.4;
-    oscC.frequency.value = 110;
-    oscB.detune.value = 7;
-    oscC.detune.value = -11;
+    oscB.type = "triangle";
+    oscC.type = "sine";
+    oscA.frequency.value = 110;
+    oscB.frequency.value = 165;
+    oscC.frequency.value = 220;
+    oscB.detune.value = 6;
+    oscC.detune.value = -8;
     const gA = ctx.createGain();
     const gB = ctx.createGain();
     const gC = ctx.createGain();
-    gA.gain.value = 0.5;
-    gB.gain.value = 0.32;
-    gC.gain.value = 0.08;
+    gA.gain.value = 0.55;
+    gB.gain.value = 0.18;
+    gC.gain.value = 0.12;
     oscA.connect(gA).connect(droneGain);
     oscB.connect(gB).connect(droneGain);
     oscC.connect(gC).connect(droneGain);
 
     lfo = ctx.createOscillator();
     lfo.type = "sine";
-    lfo.frequency.value = 0.08;
+    lfo.frequency.value = 0.07;
     const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 80;
+    lfoGain.gain.value = 90;
     lfo.connect(lfoGain).connect(filter.frequency);
 
     const nbuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -76,54 +84,80 @@ export function createAudio() {
     noiseSrc.loop = true;
     const nFilter = ctx.createBiquadFilter();
     nFilter.type = "bandpass";
-    nFilter.frequency.value = 380;
-    nFilter.Q.value = 0.6;
+    nFilter.frequency.value = 520;
+    nFilter.Q.value = 0.5;
     breathGain = ctx.createGain();
-    breathGain.gain.value = 0.03;
+    breathGain.gain.value = 0.045;
     noiseSrc.connect(nFilter).connect(breathGain).connect(master);
-
-    pulseGain = ctx.createGain();
-    pulseGain.gain.value = 0;
-    const pulseOsc = ctx.createOscillator();
-    pulseOsc.type = "sine";
-    pulseOsc.frequency.value = 110;
-    pulseOsc.connect(pulseGain).connect(master);
 
     oscA.start();
     oscB.start();
     oscC.start();
     lfo.start();
     noiseSrc.start();
-    pulseOsc.start();
-
     armed = true;
-    if (ctx.state === "suspended") await ctx.resume();
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.linearRampToValueAtTime(0.16, ctx.currentTime + 1.6);
   }
 
-  function setEnabled(on) {
-    state.audio = on;
-    if (!armed) return;
+  function confirm() {
+    if (!ctx || !master) return;
     const now = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(440, now);
+    o.frequency.exponentialRampToValueAtTime(220, now + 0.28);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    o.connect(g).connect(master);
+    o.start(now);
+    o.stop(now + 0.4);
+  }
+
+  function setGain(value, seconds = 0.2) {
+    if (!master) return;
+    const now = ctx.currentTime;
+    const next = Math.max(0.0001, value);
     master.gain.cancelScheduledValues(now);
-    master.gain.linearRampToValueAtTime(on ? 0.16 : 0.0, now + 0.25);
-    if (on && ctx.state === "suspended") ctx.resume();
+    master.gain.setValueAtTime(Math.max(0.0001, master.gain.value || 0.0001), now);
+    master.gain.linearRampToValueAtTime(next, now + seconds);
+  }
+
+  async function unlock() {
+    ensureCtx();
+    const running = await resume();
+    buildGraph();
+    if (ctx.state === "suspended") await ctx.resume();
+    state.audio = true;
+    setGain(0.24, 0.35);
+    confirm();
+    return running || ctx.state === "running";
+  }
+
+  async function setEnabled(on) {
+    state.audio = on;
+    if (on) {
+      const ok = await unlock();
+      if (!ok) state.audio = false;
+      return state.audio;
+    }
+    if (armed) setGain(0.0001, 0.2);
+    return false;
   }
 
   function tick() {
-    if (!armed || !state.audio) return;
+    if (!armed || !state.audio || !ctx || ctx.state !== "running") return;
     const now = ctx.currentTime;
     const scene = state.morph;
-    const root = 48 + scene * 4.2;
+    const root = 110 + scene * 8;
     oscA.frequency.setTargetAtTime(root, now, 0.4);
     oscB.frequency.setTargetAtTime(root * 1.5, now, 0.4);
     oscC.frequency.setTargetAtTime(root * 2.0, now, 0.5);
     const vel = Math.min(1, Math.hypot(state.mouse.vx, state.mouse.vy) * 0.04);
-    const cutoff = 280 + scene * 90 + vel * 1400 + state.attention * 500 + state.pulse * 600;
+    const cutoff = 480 + scene * 70 + vel * 1600 + state.attention * 500 + state.pulse * 700;
     filter.frequency.setTargetAtTime(cutoff, now, 0.08);
-    breathGain.gain.setTargetAtTime(0.018 + vel * 0.05 + state.energy * 0.02, now, 0.1);
-    droneGain.gain.setTargetAtTime(0.16 + state.beat * 0.08 + state.energy * 0.06, now, 0.12);
+    breathGain.gain.setTargetAtTime(0.03 + vel * 0.06 + state.energy * 0.03, now, 0.1);
+    droneGain.gain.setTargetAtTime(0.22 + state.beat * 0.1 + state.energy * 0.08, now, 0.12);
   }
 
   function pluck(intensity = 1) {
@@ -133,15 +167,15 @@ export function createAudio() {
     const g = ctx.createGain();
     const f = ctx.createBiquadFilter();
     o.type = "triangle";
-    o.frequency.value = 180 + state.morph * 28 + Math.random() * 40;
+    o.frequency.value = 330 + state.morph * 24 + Math.random() * 50;
     f.type = "lowpass";
-    f.frequency.value = 900 + intensity * 800;
+    f.frequency.value = 1400 + intensity * 800;
     g.gain.value = 0.0001;
     o.connect(f).connect(g).connect(master);
-    g.gain.exponentialRampToValueAtTime(0.12 * intensity, now + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+    g.gain.exponentialRampToValueAtTime(0.16 * intensity, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
     o.start(now);
-    o.stop(now + 0.75);
+    o.stop(now + 0.6);
   }
 
   function reject() {
@@ -150,13 +184,13 @@ export function createAudio() {
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = "square";
-    o.frequency.value = 70;
+    o.frequency.value = 90;
     g.gain.value = 0.0001;
     o.connect(g).connect(master);
-    g.gain.exponentialRampToValueAtTime(0.05, now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    g.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
     o.start(now);
-    o.stop(now + 0.2);
+    o.stop(now + 0.18);
   }
 
   function whoosh() {
@@ -165,24 +199,34 @@ export function createAudio() {
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = "sawtooth";
-    o.frequency.setValueAtTime(80, now);
-    o.frequency.exponentialRampToValueAtTime(320, now + 0.35);
-    g.gain.setValueAtTime(0.04, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    o.frequency.setValueAtTime(140, now);
+    o.frequency.exponentialRampToValueAtTime(420, now + 0.28);
+    g.gain.setValueAtTime(0.05, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
     o.connect(g).connect(master);
     o.start(now);
-    o.stop(now + 0.42);
+    o.stop(now + 0.34);
   }
 
   async function toggle() {
-    if (!armed) {
-      await unlock();
-      setEnabled(true);
-      return true;
-    }
-    setEnabled(!state.audio);
-    return state.audio;
+    if (!state.audio || !armed) return setEnabled(true);
+    return setEnabled(false);
   }
 
-  return { unlock, setEnabled, tick, pluck, reject, whoosh, toggle, get armed() { return armed; } };
+  return {
+    unlock,
+    setEnabled,
+    resume,
+    tick,
+    pluck,
+    reject,
+    whoosh,
+    toggle,
+    get armed() {
+      return armed;
+    },
+    get running() {
+      return !!(ctx && ctx.state === "running" && state.audio);
+    },
+  };
 }
