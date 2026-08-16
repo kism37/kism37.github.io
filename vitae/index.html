@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VITAE · hunt specimen</title>
+  <meta name="description" content="A scope membrane for recon. Only in-scope hosts become cells. Out of scope is rejected. Nothing leaves the browser.">
+  <meta name="theme-color" content="#07090f">
+  <meta property="og:title" content="VITAE · hunt specimen">
+  <meta property="og:description" content="A scope membrane for recon. Only in-scope hosts become cells. Serum decodes JWTs and secrets in the browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kism37.github.io/vitae/">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500&display=swap">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#story">Skip to story</a>
+
+  <canvas id="field" class="field" aria-hidden="true"></canvas>
+  <canvas id="cursor" class="cursor-layer" aria-hidden="true"></canvas>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="hud" role="banner">
+    <div class="hud-brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span class="hud-name">VITAE</span>
+      <span class="hud-spec" id="hud-spec">unaddressed</span>
+    </div>
+    <p class="hud-vitals" aria-live="polite">
+      <span id="vital-seed">SEED · ------</span>
+      <span id="vital-scene">PHASE · GATE</span>
+      <span id="vital-in">IN · 0</span>
+      <span id="vital-oos">OOS · 0</span>
+      <span id="vital-serum">SERUM · 0</span>
+    </p>
+    <div class="hud-actions">
+      <button type="button" class="icon-btn" id="btn-serum" aria-expanded="false" aria-controls="serum" aria-label="Open serum" data-magnetic>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M8 4h8l1 3H7L8 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M8 7h8v10a3 3 0 01-3 3h-2a3 3 0 01-3-3V7z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-membrane" aria-expanded="false" aria-controls="membrane" aria-label="Open membrane" data-magnetic>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-share" aria-label="Send this specimen" data-magnetic>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M8 12l8-6v12L8 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M8 12H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="false" aria-label="Enable sound" data-magnetic>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path id="icon-sound" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 10v4h3l5 4V6L7 10H4zm12.5 1a3 3 0 010 2M16 7a7 7 0 010 10"/>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-help" aria-expanded="false" aria-controls="help" aria-label="Open controls" data-magnetic>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M9.6 9.4a2.4 2.4 0 114 1.8c-.7.6-1.4 1-1.4 2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="16.4" r="0.7" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="chapters" aria-label="Operator cycle">
+    <ol>
+      <li><a href="#signal" data-scene="0" data-magnetic>01 Signal</a></li>
+      <li><a href="#surface" data-scene="1" data-magnetic>02 Surface</a></li>
+      <li><a href="#foothold" data-scene="2" data-magnetic>03 Foothold</a></li>
+      <li><a href="#secrets" data-scene="3" data-magnetic>04 Secrets</a></li>
+      <li><a href="#lateral" data-scene="4" data-magnetic>05 Lateral</a></li>
+      <li><a href="#channel" data-scene="5" data-magnetic>06 Channel</a></li>
+      <li><a href="#impact" data-scene="6" data-magnetic>07 Impact</a></li>
+      <li><a href="#burn" data-scene="7" data-magnetic>08 Burn</a></li>
+    </ol>
+  </nav>
+
+  <nav class="phase-strip" aria-label="Phases">
+    <ol>
+      <li><button type="button" data-scene="0">01</button></li>
+      <li><button type="button" data-scene="1">02</button></li>
+      <li><button type="button" data-scene="2">03</button></li>
+      <li><button type="button" data-scene="3">04</button></li>
+      <li><button type="button" data-scene="4">05</button></li>
+      <li><button type="button" data-scene="5">06</button></li>
+      <li><button type="button" data-scene="6">07</button></li>
+      <li><button type="button" data-scene="7">08</button></li>
+    </ol>
+  </nav>
+
+  <div class="progress" role="progressbar" aria-label="Cycle progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="progress-bar" id="progress-bar"></span>
+  </div>
+
+  <p class="sr-live" id="scene-live" aria-live="polite"></p>
+
+  <section class="gate" id="gate" aria-labelledby="gate-title">
+    <p class="eyebrow">Engagement specimen · no server residue</p>
+    <h1 id="gate-title" class="gate-title">
+      <span class="gate-kicker">Address a hunt</span>
+      <span class="display">wake the field</span>
+    </h1>
+    <p class="lede">The field is a scope membrane. Paste recon. Only in-scope hosts become cells. Out of scope is rejected and logged. Nothing leaves the browser.</p>
+
+    <form class="address" id="address-form">
+      <div class="field-row">
+        <label for="callsign">Callsign</label>
+        <input id="callsign" name="name" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="perimeter" inputmode="text">
+      </div>
+      <div class="field-row">
+        <label for="intent">Intent / ROE <span class="opt">optional</span></label>
+        <input id="intent" name="note" type="text" maxlength="80" autocomplete="off" placeholder="external only. no lockouts.">
+      </div>
+      <div class="field-row">
+        <label for="scope">Scope membrane <span class="opt">deny wins · one rule per line</span></label>
+        <textarea id="scope" name="scope" rows="5" spellcheck="false" placeholder="*.example.com&#10;example.com&#10;-cdn.example.com"></textarea>
+      </div>
+      <p class="live-seed" id="live-seed">SEED will form from the callsign</p>
+      <div class="examples" id="examples" aria-label="Example specimens"></div>
+      <div class="gate-actions">
+        <button type="submit" class="btn primary" id="wake-silent" data-magnetic>Open the field</button>
+        <button type="button" class="btn ghost" id="wake-sound" data-magnetic>Open with breath</button>
+      </div>
+    </form>
+    <p class="hint">Space feeds it. M toggles sound. 1 to 8 jumps phases.</p>
+    <div class="cell" aria-hidden="true">
+      <span class="cell-core"></span>
+      <span class="cell-ring"></span>
+    </div>
+  </section>
+
+  <main id="story" class="story" hidden>
+    <section class="chapter" id="signal" data-index="0">
+      <div class="chapter-inner">
+        <p class="index">01 / 08 · signal</p>
+        <h2 class="display" data-physics>
+          <span class="word">First</span>
+          <span class="word">packet</span>
+        </h2>
+        <p class="copy">Paste recon into the membrane (V). httpx, nmap, URL dumps, a sitemap. Only what matches scope becomes a cell. The rest is a kill.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="surface" data-index="1">
+      <div class="chapter-inner">
+        <p class="index">02 / 08 · surface</p>
+        <h2 class="display" data-physics>
+          <span class="word">The</span>
+          <span class="word">edge</span>
+          <span class="word">grows</span>
+        </h2>
+        <p class="copy">Hosts appear the way cells do: one, then a neighbor, because the first was lonely in DNS. What you can reach from outside is the only body that counts.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="foothold" data-index="2">
+      <div class="chapter-inner">
+        <p class="index">03 / 08 · foothold</p>
+        <h2 class="display" data-physics>
+          <span class="word">A</span>
+          <span class="word">session</span>
+          <span class="word">writes</span>
+        </h2>
+        <p class="copy">Auth is not the end of the hunt. It is the start of the exploit phase. Hold still and the field forgets. Move and it dreams a spine into the app.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="secrets" data-index="3">
+      <div class="chapter-inner">
+        <p class="index">04 / 08 · secrets</p>
+        <h2 class="display" data-physics>
+          <span class="word">Loot</span>
+          <span class="word">has</span>
+          <span class="word">mass</span>
+        </h2>
+        <p class="copy">Paste a JWT, a Set-Cookie, a JS chunk (T). Serum draws the secrets. Expiry is the pulse. Full values are copied, never written to disk.</p>
+        <ul class="lexicon" aria-label="Orbiting lexicon">
+          <li>session</li>
+          <li>scope</li>
+          <li>residue</li>
+          <li>canary</li>
+          <li>afterimage</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="chapter" id="lateral" data-index="4">
+      <div class="chapter-inner">
+        <p class="index">05 / 08 · lateral</p>
+        <h2 class="display" data-physics>
+          <span class="word">Color</span>
+          <span class="word">is</span>
+          <span class="word">blood</span>
+        </h2>
+        <p class="copy">Same tenant, next object. Staging to prod if the skin matches. Scroll and the palette migrates. A chain is scored on the end state, not the sum of parts.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="channel" data-index="5">
+      <div class="chapter-inner">
+        <p class="index">06 / 08 · channel</p>
+        <h2 class="display" data-physics>
+          <span class="word">Silence</span>
+          <span class="word">is</span>
+          <span class="word">also</span>
+          <span class="word">a</span>
+          <span class="word">reply</span>
+        </h2>
+        <p class="copy">C2, exfil, a callback that should not exist. Sound is optional. If you armed breath, the drone is the organism thinking. A quiet channel is still a channel.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="impact" data-index="6">
+      <div class="chapter-inner">
+        <p class="index">07 / 08 · impact</p>
+        <h2 class="display" data-physics>
+          <span class="word">Prove</span>
+          <span class="word">it.</span>
+          <span class="word">Then</span>
+          <span class="word">stop.</span>
+        </h2>
+        <p class="copy">Press. Feed the field a pulse. It will not thank you. It will change. Impact is the path you demonstrated, not the theoretical maximum.</p>
+        <button type="button" class="btn primary feed" id="btn-feed" data-magnetic>Feed the field</button>
+      </div>
+    </section>
+
+    <section class="chapter" id="burn" data-index="7">
+      <div class="chapter-inner">
+        <p class="index">08 / 08 · burn</p>
+        <h2 class="display" data-physics>
+          <span class="word">No</span>
+          <span class="word">residue</span>
+        </h2>
+        <p class="copy" id="burn-copy">Nothing here is stored on a server. A second visit is a different animal unless you carry the packet. Do not put a client name in the callsign.</p>
+        <aside class="packet" id="packet" aria-label="Specimen packet"></aside>
+        <p class="seed-line" id="membrane-summary"></p>
+        <div class="end-actions">
+          <button type="button" class="btn primary" id="btn-seed" data-magnetic>Copy packet</button>
+          <button type="button" class="btn ghost" id="btn-share-end" data-magnetic>Send specimen</button>
+          <button type="button" class="btn ghost" id="btn-again" data-magnetic>Burn and reseed</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="membrane serum-wrap" id="serum" hidden>
+    <div class="membrane-panel" role="dialog" aria-modal="true" aria-labelledby="serum-title">
+      <div class="help-head">
+        <h2 id="serum-title">Serum</h2>
+        <button type="button" class="icon-btn" id="serum-close" aria-label="Close serum">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="membrane-lead">Paste a JWT, Cookie / Set-Cookie, Authorization, or a JS/response blob. Tokens live here until you burn or close the tab. Nothing is stored.</p>
+      <textarea id="serum-ingest" rows="6" spellcheck="false" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.sig&#10;Set-Cookie: sid=abc; Path=/&#10;Authorization: Bearer ..."></textarea>
+      <div class="end-actions">
+        <button type="button" class="btn primary" id="btn-draw" data-magnetic>Draw serum</button>
+        <button type="button" class="btn ghost" id="btn-serum-clear" data-magnetic>Drain</button>
+      </div>
+      <p class="live-seed" id="serum-result">Empty. Paste a token or a response.</p>
+      <ul class="host-list serum-list" id="serum-list"></ul>
+    </div>
+  </aside>
+
+  <aside class="membrane" id="membrane" hidden>
+    <div class="membrane-panel" role="dialog" aria-modal="true" aria-labelledby="membrane-title">
+      <div class="help-head">
+        <h2 id="membrane-title">Membrane</h2>
+        <button type="button" class="icon-btn" id="membrane-close" aria-label="Close membrane">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="membrane-lead">Paste recon. Deny wins. Duplicates do not grow the body. Export is the artifact.</p>
+      <label class="sr-live" for="ingest">Paste recon</label>
+      <textarea id="ingest" rows="6" spellcheck="false" placeholder="https://app.example.com&#10;https://cdn.example.com&#10;10.0.0.8&#10;Host: api.example.com"></textarea>
+      <div class="end-actions">
+        <button type="button" class="btn primary" id="btn-ingest" data-magnetic>Admit paste</button>
+        <button type="button" class="btn ghost" id="btn-export" data-magnetic>Export bundle</button>
+        <button type="button" class="btn ghost" id="btn-copy-hosts" data-magnetic>Copy hosts</button>
+      </div>
+      <p class="live-seed" id="ingest-result">No ingest yet. Scope must exist or every host is rejected.</p>
+      <div class="membrane-cols">
+        <section>
+          <h3>Admitted <span id="count-in">0</span></h3>
+          <ul class="host-list" id="host-list"></ul>
+        </section>
+        <section>
+          <h3>Rejected <span id="count-oos">0</span></h3>
+          <ul class="host-list reject" id="reject-list"></ul>
+        </section>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="help" id="help" hidden>
+    <div class="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="help-head">
+        <h2 id="help-title">How to run it</h2>
+        <button type="button" class="icon-btn" id="help-close" aria-label="Close controls">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <ul class="keys">
+        <li><kbd>Space</kbd> feed a pulse</li>
+        <li><kbd>M</kbd> sound on or off</li>
+        <li><kbd>T</kbd> serum: JWT, cookies, secrets</li>
+        <li><kbd>V</kbd> open membrane / ingest clipboard</li>
+        <li><kbd>S</kbd> copy the packet</li>
+        <li><kbd>↑</kbd> <kbd>↓</kbd> previous / next phase</li>
+        <li><kbd>1</kbd> to <kbd>8</kbd> jump a phase</li>
+        <li><kbd>?</kbd> this panel</li>
+        <li><kbd>Esc</kbd> close</li>
+      </ul>
+      <p>Scope is the immune system. Serum is jwt.io plus a secret needle, in the body: expiry drives the pulse. Secrets are never written to localStorage.</p>
+    </div>
+  </aside>
+
+  <footer class="status" role="contentinfo">
+    <span id="status-line">asleep</span>
+    <span class="fps" id="fps" hidden>60</span>
+  </footer>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
