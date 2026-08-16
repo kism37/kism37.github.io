@@ -314,7 +314,7 @@ async function wake(withSound) {
     try {
       const ok = await audio.unlock();
       setSoundUI(true);
-      statusLine.textContent = ok ? "breath armed" : "audio blocked by the browser";
+      statusLine.textContent = ok ? "Asake · Symphonic" : "audio blocked by the browser";
     } catch {
       setSoundUI(false);
       statusLine.textContent = "audio unavailable";
@@ -344,7 +344,7 @@ async function wake(withSound) {
   type.collect();
   type.recache();
   statusLine.textContent = state.audio
-    ? "awake · breath armed"
+    ? "awake · Asake · Symphonic"
     : (state.name ? `awake · ${state.name}` : "awake · unaddressed");
   updateHUD();
   applySceneClasses();
@@ -673,7 +673,7 @@ soundBtn.addEventListener("click", async () => {
   try {
     const on = await audio.toggle();
     setSoundUI(on);
-    statusLine.textContent = on ? "breath armed" : "silent";
+    statusLine.textContent = on ? "Asake · Symphonic" : "silent";
   } catch {
     setSoundUI(false);
     statusLine.textContent = "audio blocked by the browser";
@@ -697,7 +697,7 @@ window.addEventListener("pointerdown", (e) => {
 });
 window.addEventListener("pointerup", (e) => {
   if (state.awake && e.target.closest("canvas, .chapter, .story, body")) {
-    const ui = e.target.closest("button, a, input, label, textarea, .help, .hud, .chapters, .phase-strip, .address, .packet, .membrane, .serum-wrap");
+    const ui = e.target.closest("button, a, input, label, textarea, .help, .hud, .chapters, .phase-strip, .address, .packet, .membrane, .serum-wrap, .breath-dock");
     if (!ui) feed(e.clientX, e.clientY, 0.7);
   }
   state.mouse.down = false;

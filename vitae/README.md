@@ -47,4 +47,6 @@ The daily tool. Paste a JWT, Set-Cookie, Authorization header, or a JS/response 
 
 ## Keys
 
-T serum · V membrane · S packet · Space feed · M sound · 1-8 phases
+Breath is the official Asake Red Bull Symphonic stream (YouTube). Open with Asake, or tap the speaker. M mutes.
+
+T serum · V membrane · S packet · Space feed · M mute · 1-8 phases

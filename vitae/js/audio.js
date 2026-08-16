@@ -1,17 +1,39 @@
 import { state } from "./state.js";
 
+const TRACK = {
+  id: "lIp-OwMozKI",
+  title: "Asake · Red Bull Symphonic",
+  url: "https://www.youtube.com/watch?v=lIp-OwMozKI",
+  start: 52,
+};
+
+function loadYouTubeAPI() {
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+  return new Promise((resolve, reject) => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof prev === "function") prev();
+      resolve(window.YT);
+    };
+    if (!document.querySelector("script[src*='youtube.com/iframe_api']")) {
+      const s = document.createElement("script");
+      s.src = "https://www.youtube.com/iframe_api";
+      s.onerror = () => reject(new Error("YouTube API blocked"));
+      document.head.appendChild(s);
+    }
+    setTimeout(() => {
+      if (window.YT && window.YT.Player) resolve(window.YT);
+    }, 4000);
+  });
+}
+
 export function createAudio() {
   let ctx = null;
   let master;
-  let filter;
-  let droneGain;
-  let breathGain;
-  let oscA;
-  let oscB;
-  let oscC;
-  let lfo;
-  let noiseSrc;
+  let player = null;
   let armed = false;
+  let usingTrack = false;
+  const dock = () => document.getElementById("breath-dock");
 
   function ensureCtx() {
     if (ctx) return ctx;
@@ -27,111 +49,122 @@ export function createAudio() {
     return ctx.state === "running";
   }
 
-  function buildGraph() {
-    if (armed) return;
+  function buildTicks() {
+    if (armed || !ctx) return;
     master = ctx.createGain();
-    master.gain.value = 0.0001;
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -16;
-    comp.knee.value = 12;
-    comp.ratio.value = 2.5;
-    master.connect(comp);
-    comp.connect(ctx.destination);
-
-    filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 720;
-    filter.Q.value = 0.55;
-    filter.connect(master);
-
-    droneGain = ctx.createGain();
-    droneGain.gain.value = 0.28;
-    droneGain.connect(filter);
-
-    oscA = ctx.createOscillator();
-    oscB = ctx.createOscillator();
-    oscC = ctx.createOscillator();
-    oscA.type = "sine";
-    oscB.type = "triangle";
-    oscC.type = "sine";
-    oscA.frequency.value = 110;
-    oscB.frequency.value = 165;
-    oscC.frequency.value = 220;
-    oscB.detune.value = 6;
-    oscC.detune.value = -8;
-    const gA = ctx.createGain();
-    const gB = ctx.createGain();
-    const gC = ctx.createGain();
-    gA.gain.value = 0.55;
-    gB.gain.value = 0.18;
-    gC.gain.value = 0.12;
-    oscA.connect(gA).connect(droneGain);
-    oscB.connect(gB).connect(droneGain);
-    oscC.connect(gC).connect(droneGain);
-
-    lfo = ctx.createOscillator();
-    lfo.type = "sine";
-    lfo.frequency.value = 0.07;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 90;
-    lfo.connect(lfoGain).connect(filter.frequency);
-
-    const nbuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const data = nbuf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    noiseSrc = ctx.createBufferSource();
-    noiseSrc.buffer = nbuf;
-    noiseSrc.loop = true;
-    const nFilter = ctx.createBiquadFilter();
-    nFilter.type = "bandpass";
-    nFilter.frequency.value = 520;
-    nFilter.Q.value = 0.5;
-    breathGain = ctx.createGain();
-    breathGain.gain.value = 0.045;
-    noiseSrc.connect(nFilter).connect(breathGain).connect(master);
-
-    oscA.start();
-    oscB.start();
-    oscC.start();
-    lfo.start();
-    noiseSrc.start();
+    master.gain.value = 0.2;
+    master.connect(ctx.destination);
     armed = true;
   }
 
-  function confirm() {
-    if (!ctx || !master) return;
+  function beep(freq, type, peak, dur) {
+    if (!armed || !state.audio || !ctx) return;
     const now = ctx.currentTime;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(440, now);
-    o.frequency.exponentialRampToValueAtTime(220, now + 0.28);
+    o.type = type;
+    o.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    g.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
     o.connect(g).connect(master);
     o.start(now);
-    o.stop(now + 0.4);
+    o.stop(now + dur + 0.02);
   }
 
-  function setGain(value, seconds = 0.2) {
-    if (!master) return;
-    const now = ctx.currentTime;
-    const next = Math.max(0.0001, value);
-    master.gain.cancelScheduledValues(now);
-    master.gain.setValueAtTime(Math.max(0.0001, master.gain.value || 0.0001), now);
-    master.gain.linearRampToValueAtTime(next, now + seconds);
+  function showDock(on) {
+    const el = dock();
+    if (el) el.hidden = !on;
+  }
+
+  function setTrackVolume() {
+    if (!player || typeof player.setVolume !== "function") return;
+    const vol = Math.round(58 + state.energy * 22 + state.attention * 16);
+    try {
+      player.setVolume(Math.max(28, Math.min(92, vol)));
+    } catch {
+      /* player not ready */
+    }
+  }
+
+  async function startTrack() {
+    showDock(true);
+    const YT = await loadYouTubeAPI();
+    if (player && typeof player.playVideo === "function") {
+      player.unMute();
+      player.playVideo();
+      setTrackVolume();
+      usingTrack = true;
+      return true;
+    }
+    const host = document.getElementById("yt-player");
+    if (!host) return false;
+    await new Promise((resolve) => {
+      player = new YT.Player("yt-player", {
+        videoId: TRACK.id,
+        width: host.clientWidth || 200,
+        height: host.clientHeight || 112,
+        playerVars: {
+          autoplay: 1,
+          start: TRACK.start,
+          loop: 1,
+          playlist: TRACK.id,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          origin: location.origin,
+          enablejsapi: 1,
+        },
+        events: {
+          onReady(e) {
+            try {
+              e.target.unMute();
+              e.target.setVolume(70);
+              e.target.playVideo();
+              usingTrack = true;
+            } catch {
+              usingTrack = false;
+            }
+            resolve();
+          },
+          onError() {
+            usingTrack = false;
+            resolve();
+          },
+          onStateChange(e) {
+            if (e.data === YT.PlayerState.ENDED) {
+              e.target.seekTo(TRACK.start, true);
+              e.target.playVideo();
+            }
+          },
+        },
+      });
+    });
+    return usingTrack;
+  }
+
+  function stopTrack() {
+    if (player && typeof player.pauseVideo === "function") {
+      try {
+        player.mute();
+        player.pauseVideo();
+      } catch {
+        /* ignore */
+      }
+    }
+    showDock(false);
   }
 
   async function unlock() {
     ensureCtx();
-    const running = await resume();
-    buildGraph();
-    if (ctx.state === "suspended") await ctx.resume();
+    await resume();
+    buildTicks();
     state.audio = true;
-    setGain(0.24, 0.35);
-    confirm();
-    return running || ctx.state === "running";
+    const ok = await startTrack();
+    if (!ok) {
+      showDock(false);
+    }
+    return ctx.state === "running";
   }
 
   async function setEnabled(on) {
@@ -141,75 +174,29 @@ export function createAudio() {
       if (!ok) state.audio = false;
       return state.audio;
     }
-    if (armed) setGain(0.0001, 0.2);
+    stopTrack();
     return false;
   }
 
   function tick() {
-    if (!armed || !state.audio || !ctx || ctx.state !== "running") return;
-    const now = ctx.currentTime;
-    const scene = state.morph;
-    const root = 110 + scene * 8;
-    oscA.frequency.setTargetAtTime(root, now, 0.4);
-    oscB.frequency.setTargetAtTime(root * 1.5, now, 0.4);
-    oscC.frequency.setTargetAtTime(root * 2.0, now, 0.5);
-    const vel = Math.min(1, Math.hypot(state.mouse.vx, state.mouse.vy) * 0.04);
-    const cutoff = 480 + scene * 70 + vel * 1600 + state.attention * 500 + state.pulse * 700;
-    filter.frequency.setTargetAtTime(cutoff, now, 0.08);
-    breathGain.gain.setTargetAtTime(0.03 + vel * 0.06 + state.energy * 0.03, now, 0.1);
-    droneGain.gain.setTargetAtTime(0.22 + state.beat * 0.1 + state.energy * 0.08, now, 0.12);
+    if (!state.audio) return;
+    if (usingTrack) setTrackVolume();
   }
 
   function pluck(intensity = 1) {
-    if (!armed || !state.audio) return;
-    const now = ctx.currentTime;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    const f = ctx.createBiquadFilter();
-    o.type = "triangle";
-    o.frequency.value = 330 + state.morph * 24 + Math.random() * 50;
-    f.type = "lowpass";
-    f.frequency.value = 1400 + intensity * 800;
-    g.gain.value = 0.0001;
-    o.connect(f).connect(g).connect(master);
-    g.gain.exponentialRampToValueAtTime(0.16 * intensity, now + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
-    o.start(now);
-    o.stop(now + 0.6);
+    beep(330 + state.morph * 24, "triangle", 0.08 * intensity, 0.35);
   }
 
   function reject() {
-    if (!armed || !state.audio) return;
-    const now = ctx.currentTime;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "square";
-    o.frequency.value = 90;
-    g.gain.value = 0.0001;
-    o.connect(g).connect(master);
-    g.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-    o.start(now);
-    o.stop(now + 0.18);
+    beep(90, "square", 0.05, 0.14);
   }
 
   function whoosh() {
-    if (!armed || !state.audio) return;
-    const now = ctx.currentTime;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "sawtooth";
-    o.frequency.setValueAtTime(140, now);
-    o.frequency.exponentialRampToValueAtTime(420, now + 0.28);
-    g.gain.setValueAtTime(0.05, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
-    o.connect(g).connect(master);
-    o.start(now);
-    o.stop(now + 0.34);
+    beep(180 + state.morph * 12, "sawtooth", 0.04, 0.22);
   }
 
   async function toggle() {
-    if (!state.audio || !armed) return setEnabled(true);
+    if (!state.audio) return setEnabled(true);
     return setEnabled(false);
   }
 
@@ -222,11 +209,14 @@ export function createAudio() {
     reject,
     whoosh,
     toggle,
+    track: TRACK,
     get armed() {
-      return armed;
+      return armed || usingTrack;
     },
     get running() {
-      return !!(ctx && ctx.state === "running" && state.audio);
+      return !!(state.audio && usingTrack);
     },
   };
 }
+
+loadYouTubeAPI().catch(() => {});

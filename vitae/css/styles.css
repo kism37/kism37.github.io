@@ -806,6 +806,50 @@ kbd {
   text-align: center;
 }
 
+.breath-dock {
+  position: fixed;
+  left: 18px;
+  bottom: calc(42px + var(--safe-bottom));
+  z-index: 40;
+  width: 200px;
+  pointer-events: auto;
+}
+
+.breath-dock[hidden] {
+  display: none;
+}
+
+.yt-frame {
+  width: 200px;
+  height: 112px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #05060a;
+}
+
+.yt-frame iframe {
+  display: block;
+  width: 200px;
+  height: 112px;
+}
+
+.breath-credit {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breath-credit:hover,
+.breath-credit:focus-visible {
+  color: var(--life);
+}
+
 .status {
   position: fixed;
   left: 22px;
@@ -913,6 +957,19 @@ body.awake .gate {
     color: var(--bg);
     background: var(--life);
     border-color: var(--life);
+  }
+
+  .breath-dock {
+    left: auto;
+    right: 12px;
+    bottom: calc(56px + var(--safe-bottom));
+    width: 148px;
+  }
+
+  .yt-frame,
+  .yt-frame iframe {
+    width: 148px;
+    height: 83px;
   }
 }
 
